@@ -66,7 +66,7 @@ export const Workflow: React.FC = () => {
       id: '06',
       step: '06',
       title: 'Source Resemblance',
-      meta: `${frame.source_profile.active_profile} (${(frame.source_profile.confidence_pct || 94).toFixed(0)}%)`,
+      meta: `${frame.source_profile.active_profile.replace(' (LOCKED)', '')} (${(frame.source_profile.confidence_pct || 94).toFixed(0)}%)`,
       status: frame.source_profile.unknown_source_locked ? 'error' : 'pass',
       details: `Normalized distance: ${frame.source_profile.mahalanobis_distance.toFixed(2)} vs threshold ${frame.source_profile.threshold}. Distance score describes resemblance, not proven contaminant origin.`,
     },
@@ -136,17 +136,21 @@ export const Workflow: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          padding: '10px 12px',
+          padding: '8px 10px',
           borderRadius: 'var(--radius-control)',
           border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border-quiet)'}`,
           backgroundColor: isSelected ? 'var(--surface-raised)' : 'var(--surface-navigation)',
           cursor: 'pointer',
           textAlign: 'left',
           transition: 'all var(--motion-hover)',
-          minHeight: '72px',
+          minHeight: '74px',
+          minWidth: 0,
+          width: '100%',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
           position: 'relative',
         }}
-        title="Click to inspect node details"
+        title={`${node.step} ${node.title} - ${node.meta}\n${node.details}`}
       >
         {/* Top row: Step + Dot */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -160,22 +164,25 @@ export const Workflow: React.FC = () => {
           >
             {node.step}
           </span>
-          <span className={`status-dot ${statusDot}`} style={{ width: '6px', height: '6px' }} />
+          <span className={`status-dot ${statusDot}`} style={{ width: '6px', height: '6px', flexShrink: 0 }} />
         </div>
 
         {/* Title */}
         <div
           style={{
-            fontSize: '12px',
+            fontSize: '11px',
             fontWeight: 600,
             color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
             lineHeight: 1.25,
-            marginTop: '4px',
-            whiteSpace: 'nowrap',
+            marginTop: '3px',
             overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
             width: '100%',
+            wordBreak: 'break-word',
           }}
+          title={node.title}
         >
           {node.title}
         </div>
@@ -183,15 +190,16 @@ export const Workflow: React.FC = () => {
         {/* One-line Metadata */}
         <div
           style={{
-            fontSize: '10px',
+            fontSize: '9.5px',
             color: 'var(--text-muted)',
             fontFamily: 'var(--font-family-mono)',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             width: '100%',
-            marginTop: '3px',
+            marginTop: '2px',
           }}
+          title={node.meta}
         >
           {node.meta}
         </div>
@@ -200,7 +208,18 @@ export const Workflow: React.FC = () => {
   };
 
   return (
-    <div className="ui-card" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <div
+      className="ui-card"
+      style={{
+        padding: '18px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        width: '100%',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+      }}
+    >
       {/* Card Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -218,7 +237,7 @@ export const Workflow: React.FC = () => {
       </div>
 
       {/* 2-Tier Balanced Pipeline Flow: Nodes 01-06 on Row 1, Nodes 07-11 on Row 2 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
         <div className="flow-grid-row-1">
           {nodes.slice(0, 6).map((node) => renderNodeCard(node))}
         </div>
@@ -233,20 +252,27 @@ export const Workflow: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '10px 16px',
+          padding: '10px 14px',
           borderRadius: 'var(--radius-control)',
           backgroundColor: 'rgba(0, 0, 0, 0.25)',
           border: '1px solid var(--border-quiet)',
           fontSize: '12px',
           gap: '12px',
           minHeight: '38px',
+          minWidth: 0,
+          width: '100%',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
           <span style={{ fontFamily: 'var(--font-family-mono)', color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>
             STAGE [{selectedNode.step} {selectedNode.title.toUpperCase()}]:
           </span>
-          <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span
+            style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}
+            title={selectedNode.details}
+          >
             {selectedNode.details}
           </span>
         </div>
