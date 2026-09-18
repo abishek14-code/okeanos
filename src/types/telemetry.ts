@@ -97,7 +97,11 @@ export interface CalibrationEngineState {
 export interface ValveActuatorState {
   main_solenoid_state: 'OPEN' | 'CLOSED';
   drain_flush_state: 'OPEN' | 'CLOSED';
+<<<<<<< HEAD
   blockage_reason: 'NONE' | 'MEASURED_BREACH' | 'UNCERTAINTY_OVERLAP' | 'EMERGENCY_SHUTDOWN';
+=======
+  blockage_reason: 'NONE' | 'MEASURED_BREACH' | 'UNCERTAINTY_OVERLAP' | 'EMERGENCY_SHUTDOWN' | 'STARTUP' | 'SENSOR_FAULT' | 'STALE_DATA' | 'UNKNOWN_SOURCE' | 'SOURCE_CHANGE' | 'DRIFT' | 'MANUAL_CLOSE' | 'RECOVERY' | 'PURGE';
+>>>>>>> 506c44a (add backend iter-1 by astra)
   chatter_lockout_active: boolean;
   actuation_latency_ms: number;
   total_cycles_logged: number;

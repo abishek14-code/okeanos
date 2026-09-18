@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar, WorkspaceId } from './components/shell/Sidebar';
+<<<<<<< HEAD
+=======
+import { IntegrationBar } from './components/shell/IntegrationBar';
+>>>>>>> 506c44a (add backend iter-1 by astra)
 import { TopBar } from './components/shell/TopBar';
 import { ThemeControlModal } from './components/shell/ThemeControlModal';
 import { CommandCenter } from './components/workspaces/CommandCenter';
@@ -20,11 +24,14 @@ export const App: React.FC = () => {
   // Keyboard navigation shortcuts: Ctrl+1 through Ctrl+8, Ctrl+T for theme
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+<<<<<<< HEAD
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
         e.preventDefault();
         toggleThemeModal();
       }
 
+=======
+>>>>>>> 506c44a (add backend iter-1 by astra)
       if (e.altKey) {
         const keyMap: { [key: string]: WorkspaceId } = {
           '1': 'command',
@@ -74,6 +81,10 @@ export const App: React.FC = () => {
     <div className="app-shell">
       {/* Top Application Bar */}
       <TopBar />
+<<<<<<< HEAD
+=======
+      <IntegrationBar />
+>>>>>>> 506c44a (add backend iter-1 by astra)
 
       {/* Main Workspace Frame */}
       <div className="app-shell__body">

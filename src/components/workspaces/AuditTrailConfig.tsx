@@ -3,7 +3,11 @@ import { useTelemetry } from '../../context/TelemetryContext';
 import { DownloadIcon } from '../common/Icons';
 
 export const AuditTrailConfig: React.FC = () => {
+<<<<<<< HEAD
   const { frame } = useTelemetry();
+=======
+  const { frame, config, saveConfig, exportFlightRecorder } = useTelemetry();
+>>>>>>> 506c44a (add backend iter-1 by astra)
   const [filterType, setFilterType] = useState<string>('ALL');
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
 
@@ -12,7 +16,11 @@ export const AuditTrailConfig: React.FC = () => {
   const [tdsUpper, setTdsUpper] = useState(frame.telemetry.tds.upper_bound);
   const [phLower, setPhLower] = useState(frame.telemetry.ph.lower_bound);
   const [phUpper, setPhUpper] = useState(frame.telemetry.ph.upper_bound);
+<<<<<<< HEAD
   const [coverageK, setCoverageK] = useState('2.0');
+=======
+  const [coverageK, setCoverageK] = useState(String(config.k));
+>>>>>>> 506c44a (add backend iter-1 by astra)
   const [cusumH, setCusumH] = useState(frame.quarantine_engine.threshold_h);
 
   const logs = frame.flight_recorder_log || [];
@@ -21,12 +29,20 @@ export const AuditTrailConfig: React.FC = () => {
 
   const handleSaveConfig = (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     setSavedNotice('Configuration committed with cryptographic signature SHA-256.');
+=======
+    try{setSavedNotice(saveConfig({...config,k:Number(coverageK),cusumH,limits:{...config.limits,tds:[tdsLower,tdsUpper],ph:[phLower,phUpper]}}));}catch(e){setSavedNotice(String(e));}
+>>>>>>> 506c44a (add backend iter-1 by astra)
     setTimeout(() => setSavedNotice(null), 4000);
   };
 
   const handleExportJson = () => {
+<<<<<<< HEAD
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(logs, null, 2));
+=======
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(exportFlightRecorder('json'));
+>>>>>>> 506c44a (add backend iter-1 by astra)
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
     downloadAnchor.setAttribute('download', `okeanos-flight-log-${new Date().toISOString()}.json`);
@@ -40,7 +56,11 @@ export const AuditTrailConfig: React.FC = () => {
       <div className="workspace-header">
         <div className="workspace-title-group">
           <h1 className="workspace-title">Audit Trail, Flight Recorder & Configuration</h1>
+<<<<<<< HEAD
           <span className="ui-badge ui-badge--success">CRYPTOGRAPHIC CHAIN VALID</span>
+=======
+          <span className="ui-badge ui-badge--success">SESSION DECISION JOURNAL</span>
+>>>>>>> 506c44a (add backend iter-1 by astra)
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="ui-btn ui-btn--secondary ui-btn--sm" onClick={handleExportJson}>
@@ -55,10 +75,17 @@ export const AuditTrailConfig: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
             <div style={{ fontSize: 'var(--font-size-caption)', fontWeight: 600, color: 'var(--text-primary)' }}>
+<<<<<<< HEAD
               TAMPER-EVIDENT FLIGHT RECORDER LOG (SHA-256 CHAIN)
             </div>
             <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>
               Immutable circular event recorder. Each block hashes previous signature.
+=======
+              RECENT DECISION RECORDS
+            </div>
+            <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>
+              Export includes readings, uncertainty, configuration, learning state, commands and replayable actions. Unsigned local records; 10,000-event export limit.
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
           </div>
 
@@ -93,7 +120,11 @@ export const AuditTrailConfig: React.FC = () => {
                 <th>Event Type</th>
                 <th>Trigger Metric</th>
                 <th>Value ± U</th>
+<<<<<<< HEAD
                 <th>Chain Hash (SHA-256)</th>
+=======
+                <th>Signature</th>
+>>>>>>> 506c44a (add backend iter-1 by astra)
               </tr>
             </thead>
             <tbody>
@@ -196,10 +227,17 @@ export const AuditTrailConfig: React.FC = () => {
                   fontFamily: 'var(--font-family-mono)',
                 }}
               >
+<<<<<<< HEAD
                 <option value="1.96">k = 1.96 (95.0% Confidence)</option>
                 <option value="2.0">k = 2.00 (95.4% Confidence - Standard)</option>
                 <option value="2.58">k = 2.58 (99.0% Confidence)</option>
                 <option value="3.0">k = 3.00 (99.73% Confidence - Strict)</option>
+=======
+                <option value="1.96">k = 1.96</option>
+                <option value="2.0">k = 2.00</option>
+                <option value="2.58">k = 2.58</option>
+                <option value="3.0">k = 3.00</option>
+>>>>>>> 506c44a (add backend iter-1 by astra)
               </select>
             </div>
 
@@ -276,7 +314,11 @@ export const AuditTrailConfig: React.FC = () => {
               </span>
             ) : (
               <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>
+<<<<<<< HEAD
                 Changes will be verified against ASTM D1125 electrical conductivity standards before writing.
+=======
+                Configuration is validated against commissioning ceilings. Saving closes the gate and restarts recovery.
+>>>>>>> 506c44a (add backend iter-1 by astra)
               </span>
             )}
             <button type="submit" className="ui-btn ui-btn--primary">

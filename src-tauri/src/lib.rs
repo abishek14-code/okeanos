@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -336,6 +337,15 @@ pub fn run() {
             set_source_profile,
             export_flight_recorder
         ])
+=======
+// The browser and desktop shell share the TypeScript controller.
+// Hardware USB transport uses Web Serial in Chrome/Edge; this shell is simulation/replay only.
+// Removed the independent Rust mock state and hard-coded override PINs.
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+>>>>>>> 506c44a (add backend iter-1 by astra)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

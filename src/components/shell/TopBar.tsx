@@ -13,6 +13,7 @@ export const TopBar: React.FC = () => {
   const minutes = Math.floor((frame.uptime_seconds % 3600) / 60);
   const uptimeStr = `${days}d ${hours}h ${minutes}m`;
 
+<<<<<<< HEAD
   // Determine State Pill styling & label
   let statePillClass = 'ui-badge--success';
   let stateDotClass = 'status-dot--success';
@@ -39,6 +40,12 @@ export const TopBar: React.FC = () => {
     stateDotClass = 'status-dot--warning status-dot--pulsing';
     stateLabel = 'HOLD: UNCERTAINTY OVERLAP';
   }
+=======
+  const open=frame.valve_actuator.main_solenoid_state==='OPEN';
+  const statePillClass=open?'ui-badge--success':'ui-badge--warning';
+  const stateDotClass=open?'status-dot--success':'status-dot--warning';
+  const stateLabel=open?'COMMAND: OPEN':`CLOSED: ${frame.valve_actuator.blockage_reason}`;
+>>>>>>> 506c44a (add backend iter-1 by astra)
 
   const learningActive = !frame.quarantine_engine.learning_frozen;
 

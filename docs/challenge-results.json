@@ -1,0 +1,122 @@
+[
+  {
+    "scenario": "creeping_drift",
+    "synthetic": true,
+    "detection_delay_samples": 30,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 1,
+    "estimated_admitted_exposure": 4933,
+    "legacy_admitted_exposure": 19895
+  },
+  {
+    "scenario": "source_step",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 3,
+    "estimated_admitted_exposure": 740,
+    "legacy_admitted_exposure": 12062
+  },
+  {
+    "scenario": "sensor_detachment",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 2,
+    "estimated_admitted_exposure": 740,
+    "legacy_admitted_exposure": 4208
+  },
+  {
+    "scenario": "sensor_frozen",
+    "synthetic": true,
+    "detection_delay_samples": 29,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 1,
+    "estimated_admitted_exposure": 3905,
+    "legacy_admitted_exposure": 10638
+  },
+  {
+    "scenario": "noise_overlap",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 1,
+    "estimated_admitted_exposure": 740,
+    "legacy_admitted_exposure": 30224
+  },
+  {
+    "scenario": "chatter_test",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 61,
+    "estimated_admitted_exposure": 740,
+    "legacy_admitted_exposure": 17113
+  },
+  {
+    "scenario": "recovery_relapse",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": 90,
+    "acceptable_samples_held_closed": 38,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 4,
+    "legacy_transitions": 4,
+    "estimated_admitted_exposure": 5570,
+    "legacy_admitted_exposure": 13028
+  },
+  {
+    "scenario": "blocked_restart",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": 113,
+    "acceptable_samples_held_closed": 38,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 3,
+    "legacy_transitions": 3,
+    "estimated_admitted_exposure": 1367,
+    "legacy_admitted_exposure": 8828
+  },
+  {
+    "scenario": "ph_breach",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 2,
+    "estimated_admitted_exposure": 740,
+    "legacy_admitted_exposure": 4208
+  },
+  {
+    "scenario": "temp_breach",
+    "synthetic": true,
+    "detection_delay_samples": 0,
+    "recovery_at_sample": null,
+    "acceptable_samples_held_closed": 0,
+    "legacy_acceptable_samples_closed": 0,
+    "valve_command_transitions": 2,
+    "legacy_transitions": 2,
+    "estimated_admitted_exposure": 740,
+    "legacy_admitted_exposure": 4208
+  }
+]

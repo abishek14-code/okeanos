@@ -10,8 +10,12 @@ export const QuarantineMonitor: React.FC = () => {
   const isFrozen = quarantine_engine.learning_frozen;
 
   const handleAction = async (action: 'DISCARD' | 'ADMIT_TO_BASELINE' | 'RESET_CUSUM') => {
+<<<<<<< HEAD
     const res = await resolveQuarantine(action);
     setActionFeedback(res);
+=======
+    try {const res = await resolveQuarantine(action);setActionFeedback(res);}catch(e){setActionFeedback(String(e));}
+>>>>>>> 506c44a (add backend iter-1 by astra)
     setTimeout(() => setActionFeedback(null), 4000);
   };
 
@@ -45,10 +49,17 @@ export const QuarantineMonitor: React.FC = () => {
           <WarningIcon size={20} style={{ color: 'var(--feedback-error)', flexShrink: 0 }} />
           <div>
             <div style={{ fontWeight: 600, color: 'var(--feedback-error)', fontSize: 'var(--font-size-body)' }}>
+<<<<<<< HEAD
               CUSUM CHANGE-POINT DETECTED: LEARNING QUARANTINE ACTIVE
             </div>
             <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
               Persistent statistical drift exceeded threshold (S+ = {sPlus.toFixed(2)} ≥ {cusumThreshold}). Data accumulation into trusted baseline is quarantined to prevent model poisoning.
+=======
+              QUALIFIED LEARNING PAUSED
+            </div>
+            <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
+              Only qualified measurements enter the baseline. Recovery, source uncertainty, faults and drift can freeze learning. Current S+ = {sPlus.toFixed(2)}; threshold = {cusumThreshold}.
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
           </div>
         </div>
@@ -64,7 +75,11 @@ export const QuarantineMonitor: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: 'var(--font-family-mono)', fontSize: 'var(--font-size-caption)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Historical Window:</span>
+<<<<<<< HEAD
               <span>30 Days (Circular FIFO @ 1Hz)</span>
+=======
+              <span>30 days (minute aggregates of qualified 1 Hz samples)</span>
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Committed Records:</span>
@@ -108,6 +123,7 @@ export const QuarantineMonitor: React.FC = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Active Trigger:</span>
+<<<<<<< HEAD
               <span>{isFrozen ? `CUSUM S+ (${sPlus.toFixed(2)} ≥ ${cusumThreshold})` : 'None'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -117,6 +133,17 @@ export const QuarantineMonitor: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Baseline Infiltration:</span>
               <span style={{ color: 'var(--feedback-success)', fontWeight: 600 }}>0% (PROVEN PROTECTED)</span>
+=======
+              <span>{isFrozen ? frame.valve_actuator.blockage_reason : 'None'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Quarantined Mean:</span>
+              <span>{quarantine_engine.quarantined_samples_count > 0 ? `${quarantine_engine.quarantined_mean.toFixed(1)} ppm` : 'N/A'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Baseline Infiltration:</span>
+              <span style={{ color: 'var(--feedback-success)', fontWeight: 600 }}>QUALIFICATION GATE ACTIVE</span>
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
           </div>
         </div>

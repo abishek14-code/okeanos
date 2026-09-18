@@ -15,7 +15,11 @@ export function calculateExpandedUncertainty(
 ): number {
   const combined_variance = u_cal ** 2 + u_noise ** 2 + u_age ** 2;
   const standard_uncertainty = Math.sqrt(combined_variance);
+<<<<<<< HEAD
   return Number((standard_uncertainty * (coverage_factor_k / 2.0)).toFixed(2));
+=======
+  return Number((standard_uncertainty * coverage_factor_k).toFixed(2));
+>>>>>>> 506c44a (add backend iter-1 by astra)
 }
 
 export type GatingStatus = 'pass' | 'hold' | 'fail';
@@ -37,11 +41,19 @@ export function evaluateIntervalGating(
   limit_lower: number,
   limit_upper: number
 ): IntervalCheckResult {
+<<<<<<< HEAD
   const interval_lower = Number((nominal_value - uncertainty).toFixed(2));
   const interval_upper = Number((nominal_value + uncertainty).toFixed(2));
 
   // Scenario C: Measured nominal breach
   if (nominal_value < limit_lower || nominal_value > limit_upper) {
+=======
+  const interval_lower = nominal_value - uncertainty;
+  const interval_upper = nominal_value + uncertainty;
+
+  // Scenario C: Measured nominal breach
+  if (![nominal_value, uncertainty, limit_lower, limit_upper].every(Number.isFinite) || uncertainty < 0 || limit_lower >= limit_upper || nominal_value < limit_lower || nominal_value > limit_upper) {
+>>>>>>> 506c44a (add backend iter-1 by astra)
     return {
       status: 'fail',
       nominal_value,
