@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+<<<<<<< HEAD
     "tauri": "tauri"
   },
   "dependencies": {
@@ -22,5 +23,26 @@
     "typescript": "~6.0.3",
     "vite": "^8.0.16",
     "@tauri-apps/cli": "^2"
+=======
+    "tauri": "tauri",
+    "test": "node --test tests/*.test.mjs",
+    "test:challenges": "node tests/challenge-report.mjs",
+    "test:ui": "node tests/ui-smoke.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.0.2",
+    "playwright": "^1.56.1",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.16"
+>>>>>>> 506c44a (add backend iter-1 by astra)
   }
 }

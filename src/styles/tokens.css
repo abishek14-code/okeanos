@@ -133,3 +133,15 @@ body {
 code, pre, .font-mono, .telemetry-val {
   font-family: var(--font-family-mono);
 }
+<<<<<<< HEAD
+=======
+
+/* Compatibility aliases used by the existing workspaces and global reset. */
+:root {
+  --font-family-sans:var(--font-family-ui);
+  --surface-base:var(--surface-canvas);
+  --surface-1:var(--surface-panel);
+  --surface-2:var(--surface-raised);
+  --surface-3:var(--surface-hover);
+}
+>>>>>>> 506c44a (add backend iter-1 by astra)

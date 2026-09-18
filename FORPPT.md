@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+> ARCHIVED CONCEPT DRAFT: implementation and verification are documented in README.md and docs/VERIFICATION.md. Historical figures and capability claims below are not evidence of tested behavior.
+
+>>>>>>> 506c44a (add backend iter-1 by astra)
 # OKEANOS: Adaptive Water Quality Gate & Metrological Edge Controller
 ## Comprehensive Master Presentation Reference & Slide-Deck Resource (FORPPT.md)
 

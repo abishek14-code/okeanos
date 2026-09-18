@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import { useTelemetry } from '../../context/TelemetryContext';
+<<<<<<< HEAD
 import { PurgeIcon, ValveClosedIcon, ValveOpenIcon } from '../common/Icons';
 
 export const CommandCenter: React.FC = () => {
   const { frame, oscilloscopeHistory, triggerPurge, overrideValve } = useTelemetry();
   const [activeParam, setActiveParam] = useState<'tds' | 'ph' | 'temp'>('tds');
+=======
+import { Workflow } from './Workflow';
+import { PurgeIcon, ValveClosedIcon, ValveOpenIcon } from '../common/Icons';
+
+export const CommandCenter: React.FC = () => {
+  const { frame, oscilloscopeHistory, triggerPurge, overrideValve, config } = useTelemetry();
+  const [activeParam, setActiveParam] = useState<'tds' | 'ph' | 'temp'>('tds');
+  const [notice,setNotice]=useState('');
+>>>>>>> 506c44a (add backend iter-1 by astra)
   const [purgeBusy, setPurgeBusy] = useState(false);
 
   const { tds, ph, temp } = frame.telemetry;
@@ -12,8 +22,12 @@ export const CommandCenter: React.FC = () => {
 
   const handlePurge = async () => {
     setPurgeBusy(true);
+<<<<<<< HEAD
     await triggerPurge(15);
     setTimeout(() => setPurgeBusy(false), 15000);
+=======
+    try{setNotice(await triggerPurge(15));}catch(e){setNotice(String(e));}finally{setPurgeBusy(false);}
+>>>>>>> 506c44a (add backend iter-1 by astra)
   };
 
   // Render SVG oscilloscope
@@ -21,7 +35,11 @@ export const CommandCenter: React.FC = () => {
     if (oscilloscopeHistory.length < 2) {
       return (
         <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+<<<<<<< HEAD
           Collecting live sensor trace buffer...
+=======
+          Collecting sensor trace buffer...
+>>>>>>> 506c44a (add backend iter-1 by astra)
         </div>
       );
     }
@@ -31,8 +49,13 @@ export const CommandCenter: React.FC = () => {
     const padding = 20;
 
     const values = oscilloscopeHistory.map((d) => d[activeParam]);
+<<<<<<< HEAD
     const uppers = oscilloscopeHistory.map((d) => (activeParam === 'tds' ? d.tdsUpper : d[activeParam] * 1.02));
     const lowers = oscilloscopeHistory.map((d) => (activeParam === 'tds' ? d.tdsLower : d[activeParam] * 0.98));
+=======
+    const uppers = oscilloscopeHistory.map((d) => d[`${activeParam}Upper`]);
+    const lowers = oscilloscopeHistory.map((d) => d[`${activeParam}Lower`]);
+>>>>>>> 506c44a (add backend iter-1 by astra)
 
     const minVal = Math.min(...lowers) * 0.95;
     const maxVal = Math.max(...uppers) * 1.05;
@@ -114,14 +137,22 @@ export const CommandCenter: React.FC = () => {
           <button
             className="ui-btn ui-btn--secondary ui-btn--sm"
             onClick={handlePurge}
+<<<<<<< HEAD
             disabled={purgeBusy || frame.valve_actuator.drain_flush_state === 'OPEN'}
+=======
+            disabled={!config.hasDrain || purgeBusy || frame.valve_actuator.drain_flush_state === 'OPEN'}
+>>>>>>> 506c44a (add backend iter-1 by astra)
           >
             <PurgeIcon size={14} />
             <span>{purgeBusy ? 'Flushing Chamber...' : 'Trigger Purge (15s)'}</span>
           </button>
           <button
             className={`ui-btn ui-btn--sm ${isValveOpen ? 'ui-btn--danger' : 'ui-btn--primary'}`}
+<<<<<<< HEAD
             onClick={() => overrideValve(isValveOpen ? 'FORCE_CLOSE' : 'AUTO')}
+=======
+            onClick={async() => {try{setNotice(await overrideValve(isValveOpen ? 'FORCE_CLOSE' : 'AUTO'));}catch(e){setNotice(String(e));}}}
+>>>>>>> 506c44a (add backend iter-1 by astra)
           >
             {isValveOpen ? <ValveClosedIcon size={14} /> : <ValveOpenIcon size={14} />}
             <span>{isValveOpen ? 'Emergency Close' : 'Restore Auto Mode'}</span>
@@ -129,6 +160,11 @@ export const CommandCenter: React.FC = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      <p role="status">{notice}</p>
+      <Workflow />
+>>>>>>> 506c44a (add backend iter-1 by astra)
       {/* 3 Metric Cards: TDS, pH, Temp */}
       <div className="grid-3">
         {/* TDS Card */}
@@ -142,7 +178,11 @@ export const CommandCenter: React.FC = () => {
               <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 600 }}>
                 TOTAL DISSOLVED SOLIDS (TDS)
               </div>
+<<<<<<< HEAD
               <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>Inline Titanium Probe</div>
+=======
+              <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>Calibrated TDS input</div>
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
             <span
               className={`ui-badge ${
@@ -161,7 +201,11 @@ export const CommandCenter: React.FC = () => {
             </span>
           </div>
           <div style={{ fontSize: 'var(--font-size-caption)', fontFamily: 'var(--font-family-mono)', color: 'var(--text-muted)' }}>
+<<<<<<< HEAD
             Uncertainty: <strong style={{ color: 'var(--text-primary)' }}>±{tds.uncertainty.toFixed(1)} ppm</strong> (k=2, 95.4%)
+=======
+            Uncertainty: <strong style={{ color: 'var(--text-primary)' }}>±{tds.uncertainty.toFixed(1)} ppm</strong> (k={config.k})
+>>>>>>> 506c44a (add backend iter-1 by astra)
           </div>
           <div style={{ fontSize: 'var(--font-size-2xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--text-muted)', marginTop: '4px' }}>
             Allowable Range: [{tds.lower_bound.toFixed(0)} - {tds.upper_bound.toFixed(0)} ppm]
@@ -179,7 +223,11 @@ export const CommandCenter: React.FC = () => {
               <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 600 }}>
                 POTENTIAL HYDROGEN (pH)
               </div>
+<<<<<<< HEAD
               <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>Glass Combination Electrode</div>
+=======
+              <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>Calibrated pH input</div>
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
             <span
               className={`ui-badge ${
@@ -198,7 +246,11 @@ export const CommandCenter: React.FC = () => {
             </span>
           </div>
           <div style={{ fontSize: 'var(--font-size-caption)', fontFamily: 'var(--font-family-mono)', color: 'var(--text-muted)' }}>
+<<<<<<< HEAD
             Uncertainty: <strong style={{ color: 'var(--text-primary)' }}>±{ph.uncertainty.toFixed(2)} pH</strong> (k=2, 95.4%)
+=======
+            Uncertainty: <strong style={{ color: 'var(--text-primary)' }}>±{ph.uncertainty.toFixed(2)} pH</strong> (k={config.k})
+>>>>>>> 506c44a (add backend iter-1 by astra)
           </div>
           <div style={{ fontSize: 'var(--font-size-2xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--text-muted)', marginTop: '4px' }}>
             Allowable Range: [{ph.lower_bound.toFixed(1)} - {ph.upper_bound.toFixed(1)} pH]
@@ -216,7 +268,11 @@ export const CommandCenter: React.FC = () => {
               <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 600 }}>
                 WATER TEMPERATURE
               </div>
+<<<<<<< HEAD
               <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>DS18B20 1-Wire Digital Probe</div>
+=======
+              <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>Calibrated water-temperature input</div>
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
             <span
               className={`ui-badge ${
@@ -235,7 +291,11 @@ export const CommandCenter: React.FC = () => {
             </span>
           </div>
           <div style={{ fontSize: 'var(--font-size-caption)', fontFamily: 'var(--font-family-mono)', color: 'var(--text-muted)' }}>
+<<<<<<< HEAD
             Uncertainty: <strong style={{ color: 'var(--text-primary)' }}>±{temp.uncertainty.toFixed(2)} °C</strong> (k=2, 95.4%)
+=======
+            Uncertainty: <strong style={{ color: 'var(--text-primary)' }}>±{temp.uncertainty.toFixed(2)} °C</strong> (k={config.k})
+>>>>>>> 506c44a (add backend iter-1 by astra)
           </div>
           <div style={{ fontSize: 'var(--font-size-2xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--text-muted)', marginTop: '4px' }}>
             Allowable Range: [{temp.lower_bound.toFixed(1)} - {temp.upper_bound.toFixed(1)} °C]
@@ -299,7 +359,11 @@ export const CommandCenter: React.FC = () => {
               REAL-TIME OSCILLOSCOPE (60s ROLLING WINDOW)
             </div>
             <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>
+<<<<<<< HEAD
               Displaying live nominal trace with shaded expanded uncertainty band [x̂ - U, x̂ + U]
+=======
+              Displaying nominal trace with shaded expanded uncertainty band [x̂ - U, x̂ + U]
+>>>>>>> 506c44a (add backend iter-1 by astra)
             </div>
           </div>
           <div className="ui-toggle-group">

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 import { useTelemetry } from '../../context/TelemetryContext';
 import { PurgeIcon } from '../common/Icons';
@@ -278,4 +279,17 @@ export const RecoveryFSM: React.FC = () => {
       </div>
     </div>
   );
+=======
+import React,{useState} from 'react';
+import {useTelemetry} from '../../context/TelemetryContext';
+export const RecoveryFSM:React.FC=()=>{
+ const {frame,triggerPurge,config,saveConfig}=useTelemetry();const [message,setMessage]=useState('');const f=frame.fsm_recovery;
+ const states=['NORMAL','SUSPECT','BLOCKED','RECOVERY_CHECK','RESTORED'];
+ return <div className="workspace-viewport"><div className="workspace-header"><h1 className="workspace-title">Recovery verification</h1><span className="ui-badge ui-badge--info">{f.current_state}</span></div>
+ <div className="ui-card"><div style={{display:'flex',gap:12,flexWrap:'wrap'}}>{states.map(s=><div key={s} className={`ui-badge ${s===f.current_state?'ui-badge--success':'ui-badge--default'}`} style={{padding:16}}>{s}</div>)}</div><p>Any failed permission condition closes the main valve immediately. Transient/persistent classification never delays closure. Recovery requires fresh acquisition, a known source, stable measurements and intervals inside the 5% hysteresis margin.</p></div>
+ <div className="grid-3"><div className="ui-card"><h3>Recovery progress</h3><strong>{f.consecutive_pass_samples} / {f.required_pass_samples}</strong><p>Consecutive fresh acceptable samples</p></div><div className="ui-card"><h3>Fresh-water evidence</h3><strong>{f.stagnant_chamber_flag?'ABSENT — HOLD CLOSED':'PRESENT'}</strong><p>A new timestamp alone does not establish fresh water.</p></div><div className="ui-card"><h3>Purge command</h3><strong>{f.purge_timer_seconds.toFixed(0)}s</strong><p>Drain: {frame.valve_actuator.drain_flush_state}</p></div></div>
+ <div className="ui-card"><h3>Sampling path</h3><p>The sensing chamber must be upstream of the main RO isolation valve. A separate drain branch or continuously flowing sample loop is needed to obtain fresh inlet water while the main valve is closed.</p>
+ <label><input type="checkbox" checked={config.hasDrain} onChange={e=>{try{saveConfig({...config,hasDrain:e.target.checked});setMessage('Drain-path configuration saved; recovery restarted.');}catch(e){setMessage(String(e));}}}/> Drain path commissioned (simulation has a virtual drain)</label>
+ <p><button className="ui-btn ui-btn--secondary" disabled={!config.hasDrain} onClick={async()=>{try{setMessage(await triggerPurge(15));}catch(e){setMessage(String(e));}}}>Request 15-second purge</button></p><p role="status">{message}</p><p>Purge duration is not a measured flush volume. Drain commands do not establish physical flow. The acquisition device must report fresh evidence independently.</p></div></div>;
+>>>>>>> 506c44a (add backend iter-1 by astra)
 };

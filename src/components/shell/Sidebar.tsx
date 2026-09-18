@@ -71,7 +71,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'exposure',
       label: 'Exposure & CMSI',
       icon: <ExposureIcon size={16} />,
+<<<<<<< HEAD
       badge: `${frame.exposure_accounting.days_remaining_projected}d`,
+=======
+      badge: 'ESTIMATE',
+>>>>>>> 506c44a (add backend iter-1 by astra)
     },
     {
       id: 'challenge',
@@ -149,20 +153,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+<<<<<<< HEAD
             <span>NC Valve (GPIO 26):</span>
+=======
+            <span>Main command:</span>
+>>>>>>> 506c44a (add backend iter-1 by astra)
             <span style={{ color: frame.valve_actuator.main_solenoid_state === 'OPEN' ? 'var(--feedback-success)' : 'var(--feedback-error)', fontWeight: 600 }}>
               {frame.valve_actuator.main_solenoid_state}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+<<<<<<< HEAD
             <span>Purge Aux (GPIO 27):</span>
+=======
+            <span>Drain command:</span>
+>>>>>>> 506c44a (add backend iter-1 by astra)
             <span style={{ color: frame.valve_actuator.drain_flush_state === 'OPEN' ? 'var(--accent)' : 'var(--text-muted)' }}>
               {frame.valve_actuator.drain_flush_state}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+<<<<<<< HEAD
             <span>Solenoid Cycles:</span>
             <span>{frame.valve_actuator.total_cycles_logged.toLocaleString()} / 100k</span>
+=======
+            <span>Command transitions:</span>
+            <span>{frame.valve_actuator.total_cycles_logged.toLocaleString()}</span>
+>>>>>>> 506c44a (add backend iter-1 by astra)
           </div>
         </div>
       )}
