@@ -10,12 +10,7 @@ export const QuarantineMonitor: React.FC = () => {
   const isFrozen = quarantine_engine.learning_frozen;
 
   const handleAction = async (action: 'DISCARD' | 'ADMIT_TO_BASELINE' | 'RESET_CUSUM') => {
-<<<<<<< HEAD
-    const res = await resolveQuarantine(action);
-    setActionFeedback(res);
-=======
     try {const res = await resolveQuarantine(action);setActionFeedback(res);}catch(e){setActionFeedback(String(e));}
->>>>>>> 506c44a (add backend iter-1 by astra)
     setTimeout(() => setActionFeedback(null), 4000);
   };
 
@@ -27,9 +22,9 @@ export const QuarantineMonitor: React.FC = () => {
     <div className="workspace-viewport">
       <div className="workspace-header">
         <div className="workspace-title-group">
-          <h1 className="workspace-title">Learning Quarantine & CUSUM Drift Monitor</h1>
-          <span className={`ui-badge ${isFrozen ? 'ui-badge--error' : 'ui-badge--success'}`}>
-            {isFrozen ? 'LEARNING FROZEN' : 'ACTIVE BASELINE LEARNING'}
+          <h1 className="workspace-title">Learning Quarantine & Drift Monitor</h1>
+          <span className={`ui-badge ${isFrozen ? 'ui-badge--subtle-error' : 'ui-badge--subtle-success'}`}>
+            {isFrozen ? 'Learning Paused' : 'Baseline Active'}
           </span>
         </div>
       </div>
@@ -49,38 +44,27 @@ export const QuarantineMonitor: React.FC = () => {
           <WarningIcon size={20} style={{ color: 'var(--feedback-error)', flexShrink: 0 }} />
           <div>
             <div style={{ fontWeight: 600, color: 'var(--feedback-error)', fontSize: 'var(--font-size-body)' }}>
-<<<<<<< HEAD
-              CUSUM CHANGE-POINT DETECTED: LEARNING QUARANTINE ACTIVE
-            </div>
-            <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
-              Persistent statistical drift exceeded threshold (S+ = {sPlus.toFixed(2)} ≥ {cusumThreshold}). Data accumulation into trusted baseline is quarantined to prevent model poisoning.
-=======
               QUALIFIED LEARNING PAUSED
             </div>
-            <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
-              Only qualified measurements enter the baseline. Recovery, source uncertainty, faults and drift can freeze learning. Current S+ = {sPlus.toFixed(2)}; threshold = {cusumThreshold}.
->>>>>>> 506c44a (add backend iter-1 by astra)
-            </div>
-          </div>
-        </div>
+  <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
+    Only qualified measurements enter the baseline. Recovery, source uncertainty, faults and drift can freeze learning. Current S+ = {sPlus.toFixed(2)}; threshold = {cusumThreshold}.
+  </div>
+          </div >
+        </div >
       )}
 
-      {/* Dual Buffer Architecture */}
-      <div className="grid-2">
-        {/* Trusted Baseline Buffer */}
-        <div className="ui-card">
-          <div style={{ fontSize: 'var(--font-size-caption)', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px' }}>
-            TRUSTED BASELINE BUFFER (B_trusted)
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: 'var(--font-family-mono)', fontSize: 'var(--font-size-caption)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Historical Window:</span>
-<<<<<<< HEAD
-              <span>30 Days (Circular FIFO @ 1Hz)</span>
-=======
+{/* Dual Buffer Architecture */ }
+<div className="grid-2">
+  {/* Trusted Baseline Buffer */}
+  <div className="ui-card">
+    <div style={{ fontSize: 'var(--font-size-caption)', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px' }}>
+      TRUSTED BASELINE BUFFER (B_trusted)
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: 'var(--font-family-mono)', fontSize: 'var(--font-size-caption)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span style={{ color: 'var(--text-muted)' }}>Historical Window:</span>
               <span>30 days (minute aggregates of qualified 1 Hz samples)</span>
->>>>>>> 506c44a (add backend iter-1 by astra)
-            </div>
+            </div >
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Committed Records:</span>
               <strong style={{ color: 'var(--text-primary)' }}>{quarantine_engine.trusted_records_count.toLocaleString()} pts</strong>
@@ -100,11 +84,11 @@ export const QuarantineMonitor: React.FC = () => {
                 {(quarantine_engine.baseline_mean + 2 * quarantine_engine.baseline_sigma).toFixed(1)} ppm
               </span>
             </div>
-          </div>
-        </div>
+          </div >
+        </div >
 
-        {/* Quarantine Holding Buffer */}
-        <div className="ui-card" style={{ borderColor: isFrozen ? 'var(--feedback-error)' : 'var(--border-quiet)' }}>
+  {/* Quarantine Holding Buffer */ }
+  < div className = "ui-card" style = {{ borderColor: isFrozen ? 'var(--feedback-error)' : 'var(--border-quiet)' }}>
           <div style={{ fontSize: 'var(--font-size-caption)', fontWeight: 600, color: isFrozen ? 'var(--feedback-error)' : 'var(--text-secondary)', marginBottom: '12px' }}>
             QUARANTINE HOLDING BUFFER (B_quarantine)
           </div>
@@ -123,94 +107,82 @@ export const QuarantineMonitor: React.FC = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Active Trigger:</span>
-<<<<<<< HEAD
-              <span>{isFrozen ? `CUSUM S+ (${sPlus.toFixed(2)} ≥ ${cusumThreshold})` : 'None'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Quarantined Mean:</span>
-              <span>{quarantine_engine.quarantined_samples_count > 0 ? `${frame.telemetry.tds.value.toFixed(1)} ppm` : 'N/A'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Baseline Infiltration:</span>
-              <span style={{ color: 'var(--feedback-success)', fontWeight: 600 }}>0% (PROVEN PROTECTED)</span>
-=======
               <span>{isFrozen ? frame.valve_actuator.blockage_reason : 'None'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Quarantined Mean:</span>
-              <span>{quarantine_engine.quarantined_samples_count > 0 ? `${quarantine_engine.quarantined_mean.toFixed(1)} ppm` : 'N/A'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Baseline Infiltration:</span>
-              <span style={{ color: 'var(--feedback-success)', fontWeight: 600 }}>QUALIFICATION GATE ACTIVE</span>
->>>>>>> 506c44a (add backend iter-1 by astra)
-            </div>
-          </div>
+  </div>
+  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <span style={{ color: 'var(--text-muted)' }}>Quarantined Mean:</span>
+    <span>{quarantine_engine.quarantined_samples_count > 0 ? `${quarantine_engine.quarantined_mean.toFixed(1)} ppm` : 'N/A'}</span>
+  </div>
+  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <span style={{ color: 'var(--text-muted)' }}>Baseline Infiltration:</span>
+    <span style={{ color: 'var(--feedback-success)', fontWeight: 600 }}>QUALIFICATION GATE ACTIVE</span>
+  </div>
+          </div >
+        </div >
+      </div >
+
+  {/* CUSUM Cumulative Deviation Chart */ }
+  < div className = "ui-card" >
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+      <div>
+        <div style={{ fontSize: 'var(--font-size-caption)', fontWeight: 600, color: 'var(--text-primary)' }}>
+          CUSUM STATISTIC ACCUMULATOR (S+ / S-)
+        </div>
+        <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>
+          S_t^+ tracks upward drift; S_t^- tracks downward drift. Alarm trips when S ≥ h (4.5). Reference allowance k = 0.5.
         </div>
       </div>
-
-      {/* CUSUM Cumulative Deviation Chart */}
-      <div className="ui-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div>
-            <div style={{ fontSize: 'var(--font-size-caption)', fontWeight: 600, color: 'var(--text-primary)' }}>
-              CUSUM STATISTIC ACCUMULATOR (S+ / S-)
-            </div>
-            <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--text-muted)' }}>
-              S_t^+ tracks upward drift; S_t^- tracks downward drift. Alarm trips when S ≥ h (4.5). Reference allowance k = 0.5.
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '12px', fontFamily: 'var(--font-family-mono)', fontSize: 'var(--font-size-caption)' }}>
-            <div>
-              S⁺: <strong style={{ color: sPlus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)' }}>{sPlus.toFixed(3)}</strong>
-            </div>
-            <div>
-              S⁻: <strong style={{ color: sMinus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)' }}>{sMinus.toFixed(3)}</strong>
-            </div>
-            <div>
-              Threshold h: <strong>{cusumThreshold}</strong>
-            </div>
-          </div>
+      <div style={{ display: 'flex', gap: '12px', fontFamily: 'var(--font-family-mono)', fontSize: 'var(--font-size-caption)' }}>
+        <div>
+          S⁺: <strong style={{ color: sPlus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)' }}>{sPlus.toFixed(3)}</strong>
         </div>
-
-        {/* Visual CUSUM Meters */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-caption)', marginBottom: '4px' }}>
-              <span>Upward Drift Accumulator (S⁺)</span>
-              <span style={{ fontFamily: 'var(--font-family-mono)' }}>{( (sPlus / cusumThreshold) * 100 ).toFixed(0)}% of threshold</span>
-            </div>
-            <div className="ui-progress-track" style={{ height: '10px' }}>
-              <div
-                className="ui-progress-fill"
-                style={{
-                  width: `${Math.min(100, (sPlus / cusumThreshold) * 100)}%`,
-                  backgroundColor: sPlus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)',
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-caption)', marginBottom: '4px' }}>
-              <span>Downward Drift Accumulator (S⁻)</span>
-              <span style={{ fontFamily: 'var(--font-family-mono)' }}>{( (sMinus / cusumThreshold) * 100 ).toFixed(0)}% of threshold</span>
-            </div>
-            <div className="ui-progress-track" style={{ height: '10px' }}>
-              <div
-                className="ui-progress-fill"
-                style={{
-                  width: `${Math.min(100, (sMinus / cusumThreshold) * 100)}%`,
-                  backgroundColor: sMinus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)',
-                }}
-              />
-            </div>
-          </div>
+        <div>
+          S⁻: <strong style={{ color: sMinus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)' }}>{sMinus.toFixed(3)}</strong>
+        </div>
+        <div>
+          Threshold h: <strong>{cusumThreshold}</strong>
         </div>
       </div>
+    </div>
 
-      {/* Quarantine Resolution Actions */}
-      <div className="ui-card">
+{/* Visual CUSUM Meters */ }
+<div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
+  <div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-caption)', marginBottom: '4px' }}>
+      <span>Upward Drift Accumulator (S⁺)</span>
+      <span style={{ fontFamily: 'var(--font-family-mono)' }}>{((sPlus / cusumThreshold) * 100).toFixed(0)}% of threshold</span>
+    </div>
+    <div className="ui-progress-track" style={{ height: '10px' }}>
+      <div
+        className="ui-progress-fill"
+        style={{
+          width: `${Math.min(100, (sPlus / cusumThreshold) * 100)}%`,
+          backgroundColor: sPlus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)',
+        }}
+      />
+    </div>
+  </div>
+
+  <div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-caption)', marginBottom: '4px' }}>
+      <span>Downward Drift Accumulator (S⁻)</span>
+      <span style={{ fontFamily: 'var(--font-family-mono)' }}>{((sMinus / cusumThreshold) * 100).toFixed(0)}% of threshold</span>
+    </div>
+    <div className="ui-progress-track" style={{ height: '10px' }}>
+      <div
+        className="ui-progress-fill"
+        style={{
+          width: `${Math.min(100, (sMinus / cusumThreshold) * 100)}%`,
+          backgroundColor: sMinus >= cusumThreshold ? 'var(--feedback-error)' : 'var(--accent)',
+        }}
+      />
+    </div>
+  </div>
+</div>
+      </div >
+
+  {/* Quarantine Resolution Actions */ }
+  < div className = "ui-card" >
         <div style={{ fontSize: 'var(--font-size-caption)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>
           QUARANTINE RESOLUTION CONTROLS
         </div>
@@ -228,12 +200,14 @@ export const QuarantineMonitor: React.FC = () => {
             <span>Reset CUSUM Accumulator</span>
           </button>
         </div>
-        {actionFeedback && (
-          <div style={{ marginTop: '12px', fontSize: 'var(--font-size-caption)', color: 'var(--accent)', fontFamily: 'var(--font-family-mono)' }}>
-            ✓ {actionFeedback}
-          </div>
-        )}
-      </div>
+{
+  actionFeedback && (
+    <div style={{ marginTop: '12px', fontSize: 'var(--font-size-caption)', color: 'var(--accent)', fontFamily: 'var(--font-family-mono)' }}>
+      ✓ {actionFeedback}
     </div>
+  )
+}
+      </div >
+    </div >
   );
 };

@@ -1,57 +1,20 @@
 import React from 'react';
-import { useTheme, ThemeMode, AccentColor, UiDensity, MotionMode } from '../../context/ThemeContext';
-import { CloseIcon, CheckIcon } from '../common/Icons';
+import { useTheme, AccentColor, UiDensity, MotionMode } from '../../context/ThemeContext';
+import { CloseIcon } from '../common/Icons';
 
 export const ThemeControlModal: React.FC = () => {
   const {
-    theme,
     accent,
     density,
     motion,
     isThemeModalOpen,
     closeThemeModal,
-    setTheme,
     setAccent,
     setDensity,
     setMotion,
   } = useTheme();
 
   if (!isThemeModalOpen) return null;
-
-  const themes: { id: ThemeMode; label: string; desc: string; canvasColor: string; panelColor: string; borderColor: string }[] = [
-    {
-      id: 'obsidian',
-      label: 'Obsidian Charcoal',
-      desc: 'Default matte charcoal surfaces (#121212) with precision 1px engineering borders',
-      canvasColor: '#121212',
-      panelColor: '#1c1c1c',
-      borderColor: '#303030',
-    },
-    {
-      id: 'high-contrast',
-      label: 'High-Contrast Mode',
-      desc: 'Strict high-legibility pure black (#000000) with crisp white text and reinforced borders',
-      canvasColor: '#000000',
-      panelColor: '#101010',
-      borderColor: '#555555',
-    },
-    {
-      id: 'midnight',
-      label: 'Midnight OLED',
-      desc: 'True pitch-black (#000000) canvas for low-power OLED and zero ambient light environments',
-      canvasColor: '#000000',
-      panelColor: '#111111',
-      borderColor: '#242424',
-    },
-    {
-      id: 'slate',
-      label: 'Slate Workstation',
-      desc: 'Industrial engineering console styling with deep navy slate undertones (#0b0f14)',
-      canvasColor: '#0b0f14',
-      panelColor: '#141c26',
-      borderColor: '#2d3f56',
-    },
-  ];
 
   const accents: { id: AccentColor; label: string; hex: string }[] = [
     { id: 'ice', label: 'Ice Blue', hex: '#91b9f2' },
@@ -76,13 +39,13 @@ export const ThemeControlModal: React.FC = () => {
     <div className="ui-modal-backdrop" onClick={closeThemeModal}>
       <div
         className="ui-modal-dialog"
-        style={{ maxWidth: '680px' }}
+        style={{ maxWidth: '640px' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="ui-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontWeight: 600, fontSize: 'var(--font-size-section)' }}>
-              Theme & Display Control
+              Display Preferences
             </span>
             <kbd>Ctrl+T</kbd>
           </div>
@@ -92,55 +55,6 @@ export const ThemeControlModal: React.FC = () => {
         </div>
 
         <div className="ui-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Theme Mode Selector */}
-          <div>
-            <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Base Theme Variant
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {themes.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTheme(t.id)}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: '4px',
-                    padding: '12px',
-                    borderRadius: 'var(--radius-card)',
-                    border: `1px solid ${theme === t.id ? 'var(--accent)' : 'var(--border-quiet)'}`,
-                    backgroundColor: theme === t.id ? 'var(--surface-raised)' : 'var(--surface-card)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all var(--motion-hover)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div
-                        style={{
-                          width: '14px',
-                          height: '14px',
-                          borderRadius: '3px',
-                          backgroundColor: t.canvasColor,
-                          border: `1px solid ${t.borderColor}`,
-                        }}
-                      />
-                      <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 'var(--font-size-body)' }}>
-                        {t.label}
-                      </span>
-                    </div>
-                    {theme === t.id && <CheckIcon size={14} style={{ color: 'var(--accent)' }} />}
-                  </div>
-                  <span style={{ fontSize: 'var(--font-size-metadata)', color: 'var(--text-muted)' }}>
-                    {t.desc}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Accent Color Selector */}
           <div>
             <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>

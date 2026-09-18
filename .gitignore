@@ -1,4 +1,29 @@
-# Logs
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production & Build Outputs
+dist/
+dist-ssr/
+build/
+.vite/
+
+# Tauri & Rust Targets
+target/
+src-tauri/target/
+src-tauri/gen/schemas/
+**/*.rs.bk
+
+# Environment & Sensitive Files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# Logs & Debug
 logs
 *.log
 npm-debug.log*
@@ -7,18 +32,30 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Test & Automation Outputs
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
 
-# Editor directories and files
+# IDE & Editor Files
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+!.vscode/settings.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swo
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini

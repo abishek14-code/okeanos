@@ -4,80 +4,12 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. Theme Variants
+   1. Theme Variants: Obsidian Base (Single Canonical Theme)
    -------------------------------------------------------------------------- */
 
-/* High-Contrast Mode (Strictly from THEMEnUI.md Section 2.6) */
-:root[data-theme="high-contrast"] {
-  --surface-canvas: #000000;
-  --surface-navigation: #080808;
-  --surface-panel: #101010;
-  --surface-raised: #181818;
-  --surface-card: #101010;
-  --surface-card-subtle: #141414;
-  --surface-input: #080808;
-  --surface-hover: #262626;
-  --surface-selected: #333333;
-  --surface-active-pill: rgba(255, 255, 255, 0.18);
-
-  --border-quiet: #404040;
-  --border-subtle: #555555;
-  --border-active: #888888;
-  --border-focus: #ffffff;
-
-  --text-primary: #ffffff;
-  --text-secondary: #e0e0e0;
-  --text-muted: #aaaaaa;
-  --text-disabled: #757575;
-
-  --accent: #ffffff;
-  --accent-hover: #e0e0e0;
-  --accent-subtle: rgba(255, 255, 255, 0.20);
-  --accent-blue: #60a5fa;
-
-  --feedback-success: #4ade80;
-  --feedback-caution: #facc15;
-  --feedback-error: #f87171;
-  --feedback-info: #60a5fa;
-
-  --shadow-card: 0 0 0 1px #404040;
-  --shadow-card-hover: 0 0 0 1px #888888;
-}
-
-/* Midnight OLED Mode (True Black Pitch Canvas) */
-:root[data-theme="midnight"] {
-  --surface-canvas: #000000;
-  --surface-navigation: #080808;
-  --surface-panel: #111111;
-  --surface-raised: #181818;
-  --surface-card: #111111;
-  --surface-card-subtle: #141414;
-  --surface-input: #0c0c0c;
-  --surface-hover: #222222;
-  --surface-selected: #1f1f1f;
-  --surface-active-pill: rgba(255, 255, 255, 0.08);
-
-  --border-quiet: #242424;
-  --border-subtle: #303030;
-  --border-active: #505050;
-}
-
-/* Slate Workstation Mode (Industrial Cool Deep Navy Slate) */
-:root[data-theme="slate"] {
-  --surface-canvas: #0b0f14;
-  --surface-navigation: #0f151e;
-  --surface-panel: #141c26;
-  --surface-raised: #1b2634;
-  --surface-card: #141c26;
-  --surface-card-subtle: #172230;
-  --surface-input: #0f151e;
-  --surface-hover: #223042;
-  --surface-selected: #1e2a3b;
-  --surface-active-pill: rgba(145, 185, 242, 0.12);
-
-  --border-quiet: #233144;
-  --border-subtle: #2d3f56;
-  --border-active: #4a6385;
+:root[data-theme="obsidian"] {
+  /* Default Obsidian matte charcoal surfaces are defined in tokens.css */
+  color-scheme: dark;
 }
 
 /* --------------------------------------------------------------------------

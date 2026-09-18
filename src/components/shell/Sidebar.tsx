@@ -43,11 +43,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'command',
       label: 'Command Center',
       icon: <CommandCenterIcon size={16} />,
-      badge: frame.valve_actuator.main_solenoid_state,
     },
     {
       id: 'quarantine',
-      label: 'Quarantine & CUSUM',
+      label: 'Quarantine & Drift',
       icon: <QuarantineIcon size={16} />,
       badge: frame.quarantine_engine.learning_frozen ? 'FROZEN' : undefined,
     },
@@ -63,23 +62,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'recovery',
-      label: 'Recovery FSM & Purge',
+      label: 'Recovery / FSM & Purge',
       icon: <RecoveryFsmIcon size={16} />,
-      badge: frame.fsm_recovery.current_state,
     },
     {
       id: 'exposure',
-      label: 'Exposure & CMSI',
+      label: 'Exposure & Membrane',
       icon: <ExposureIcon size={16} />,
-<<<<<<< HEAD
-      badge: `${frame.exposure_accounting.days_remaining_projected}d`,
-=======
-      badge: 'ESTIMATE',
->>>>>>> 506c44a (add backend iter-1 by astra)
     },
     {
       id: 'challenge',
-      label: 'Challenge Replay Rig',
+      label: 'Challenge Replay',
       icon: <ChallengeRigIcon size={16} />,
     },
     {
@@ -109,22 +102,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {item.badge && (
                     <span
                       style={{
-                        fontSize: '10px',
+                        fontSize: '9px',
                         padding: '1px 5px',
-                        borderRadius: '3px',
-                        backgroundColor:
-                          item.badge === 'FROZEN' || item.badge === 'BLOCKED'
-                            ? 'var(--feedback-error-bg)'
-                            : item.badge === 'OPEN'
-                            ? 'var(--feedback-success-bg)'
-                            : 'rgba(255, 255, 255, 0.08)',
-                        color:
-                          item.badge === 'FROZEN' || item.badge === 'BLOCKED'
-                            ? 'var(--feedback-error)'
-                            : item.badge === 'OPEN'
-                            ? 'var(--feedback-success)'
-                            : 'var(--text-muted)',
+                        borderRadius: 'var(--radius-control)',
+                        backgroundColor: 'rgba(232, 160, 160, 0.12)',
+                        color: 'var(--feedback-error)',
                         fontFamily: 'var(--font-family-mono)',
+                        border: '1px solid rgba(232, 160, 160, 0.25)',
                       }}
                     >
                       {item.badge}
@@ -137,60 +121,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </nav>
 
-      {/* Hardware Status Strip at bottom */}
-      {!isCollapsed && (
-        <div
-          style={{
-            padding: '10px 12px',
-            borderTop: '1px solid var(--border-quiet)',
-            fontSize: '11px',
-            fontFamily: 'var(--font-family-mono)',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-<<<<<<< HEAD
-            <span>NC Valve (GPIO 26):</span>
-=======
-            <span>Main command:</span>
->>>>>>> 506c44a (add backend iter-1 by astra)
-            <span style={{ color: frame.valve_actuator.main_solenoid_state === 'OPEN' ? 'var(--feedback-success)' : 'var(--feedback-error)', fontWeight: 600 }}>
-              {frame.valve_actuator.main_solenoid_state}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-<<<<<<< HEAD
-            <span>Purge Aux (GPIO 27):</span>
-=======
-            <span>Drain command:</span>
->>>>>>> 506c44a (add backend iter-1 by astra)
-            <span style={{ color: frame.valve_actuator.drain_flush_state === 'OPEN' ? 'var(--accent)' : 'var(--text-muted)' }}>
-              {frame.valve_actuator.drain_flush_state}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-<<<<<<< HEAD
-            <span>Solenoid Cycles:</span>
-            <span>{frame.valve_actuator.total_cycles_logged.toLocaleString()} / 100k</span>
-=======
-            <span>Command transitions:</span>
-            <span>{frame.valve_actuator.total_cycles_logged.toLocaleString()}</span>
->>>>>>> 506c44a (add backend iter-1 by astra)
-          </div>
-        </div>
-      )}
-
       {/* Collapse/Expand Footer */}
       <div className="sidebar__footer">
         <button
           className="ui-btn ui-btn--ghost ui-btn--icon"
           onClick={onToggleCollapse}
           title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          style={{ width: '100%', display: 'flex', justifyContent: isCollapsed ? 'center' : 'flex-end' }}
+          style={{ width: '100%', display: 'flex', justifyContent: isCollapsed ? 'center' : 'flex-end', height: '28px' }}
         >
           {isCollapsed ? <ChevronRightIcon size={14} /> : <ChevronLeftIcon size={14} />}
         </button>

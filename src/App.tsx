@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar, WorkspaceId } from './components/shell/Sidebar';
-<<<<<<< HEAD
-=======
-import { IntegrationBar } from './components/shell/IntegrationBar';
->>>>>>> 506c44a (add backend iter-1 by astra)
 import { TopBar } from './components/shell/TopBar';
-import { ThemeControlModal } from './components/shell/ThemeControlModal';
 import { CommandCenter } from './components/workspaces/CommandCenter';
 import { QuarantineMonitor } from './components/workspaces/QuarantineMonitor';
 import { UncertaintyCalibration } from './components/workspaces/UncertaintyCalibration';
@@ -14,24 +9,14 @@ import { RecoveryFSM } from './components/workspaces/RecoveryFSM';
 import { ExposureAccounting } from './components/workspaces/ExposureAccounting';
 import { ChallengeReplayRig } from './components/workspaces/ChallengeReplayRig';
 import { AuditTrailConfig } from './components/workspaces/AuditTrailConfig';
-import { useTheme } from './context/ThemeContext';
 
 export const App: React.FC = () => {
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId>('command');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
-  const { isThemeModalOpen, toggleThemeModal } = useTheme();
 
-  // Keyboard navigation shortcuts: Ctrl+1 through Ctrl+8, Ctrl+T for theme
+  // Keyboard navigation shortcuts: Alt+1..8
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-<<<<<<< HEAD
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        toggleThemeModal();
-      }
-
-=======
->>>>>>> 506c44a (add backend iter-1 by astra)
       if (e.altKey) {
         const keyMap: { [key: string]: WorkspaceId } = {
           '1': 'command',
@@ -52,7 +37,15 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleThemeModal]);
+  }, []);
+
+  // Smooth scroll viewport to top on workspace transition
+  useEffect(() => {
+    const viewport = document.querySelector('.workspace-viewport');
+    if (viewport) {
+      viewport.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeWorkspace]);
 
   const renderActiveWorkspace = () => {
     switch (activeWorkspace) {
@@ -81,10 +74,6 @@ export const App: React.FC = () => {
     <div className="app-shell">
       {/* Top Application Bar */}
       <TopBar />
-<<<<<<< HEAD
-=======
-      <IntegrationBar />
->>>>>>> 506c44a (add backend iter-1 by astra)
 
       {/* Main Workspace Frame */}
       <div className="app-shell__body">
@@ -101,9 +90,6 @@ export const App: React.FC = () => {
           {renderActiveWorkspace()}
         </main>
       </div>
-
-      {/* Live Theme Control Modal */}
-      {isThemeModalOpen && <ThemeControlModal />}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemeMode = 'obsidian' | 'high-contrast' | 'midnight' | 'slate';
+export type ThemeMode = 'obsidian';
 export type AccentColor = 'ice' | 'blue' | 'emerald' | 'amber' | 'white';
 export type UiDensity = 'compact' | 'standard' | 'spacious';
 export type MotionMode = 'snappy' | 'reduced';
@@ -23,9 +23,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<ThemeMode>(() => {
-    return (localStorage.getItem('okeanos_theme') as ThemeMode) || 'obsidian';
-  });
+  const [theme] = useState<ThemeMode>('obsidian');
 
   const [accent, setAccentState] = useState<AccentColor>(() => {
     return (localStorage.getItem('okeanos_accent') as AccentColor) || 'ice';
@@ -55,19 +53,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('okeanos_motion', motion);
   }, [theme, accent, density, motion]);
 
-  // Global Keyboard Shortcut: Ctrl+T or Cmd+T for Theme Control
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        setIsThemeModalOpen((prev) => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
-  const setTheme = (t: ThemeMode) => setThemeState(t);
+
+  const setTheme = (_t?: ThemeMode) => {};
   const setAccent = (a: AccentColor) => setAccentState(a);
   const setDensity = (d: UiDensity) => setDensityState(d);
   const setMotion = (m: MotionMode) => setMotionState(m);
