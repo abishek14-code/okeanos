@@ -1,0 +1,241 @@
+/* ==========================================================================
+   Obsidian Graphite — Master Shell Layout & Grid System
+   Strictly aligned with OKEANOS.md Section 3 & 6
+   ========================================================================== */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   1. Global Top Navigation Toolbar (height: 38px)
+   -------------------------------------------------------------------------- */
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 var(--space-4);
+  background-color: var(--surface-navigation);
+  border-bottom: 1px solid var(--border-quiet);
+  font-size: var(--font-size-caption);
+  gap: var(--space-3);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.top-bar__left,
+.top-bar__center,
+.top-bar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.top-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: var(--font-size-body);
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+.top-bar__brand-badge {
+  font-size: var(--font-size-2xs);
+  padding: 1px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  border: 1px solid var(--border-quiet);
+}
+
+.top-bar__telemetry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-metadata);
+  color: var(--text-secondary);
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 3px 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-quiet);
+}
+
+.top-bar__telemetry-item strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   2. Main Layout Container (Sidebar + Content)
+   -------------------------------------------------------------------------- */
+
+.app-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   3. Global Left Navigation Rail (width: 220px, collapsible to 54px)
+   -------------------------------------------------------------------------- */
+
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--surface-navigation);
+  border-right: 1px solid var(--border-quiet);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width var(--motion-panel);
+  z-index: 90;
+}
+
+.sidebar--collapsed {
+  width: var(--sidebar-collapsed);
+}
+
+.sidebar__nav {
+  flex: 1;
+  padding: var(--space-2) var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  height: 36px;
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  text-align: left;
+  width: 100%;
+  transition: all var(--motion-hover);
+  white-space: nowrap;
+}
+
+.sidebar__item:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.sidebar__item--active {
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar__item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.sidebar__item--active .sidebar__item-icon {
+  color: var(--accent);
+}
+
+.sidebar__footer {
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border-quiet);
+  background-color: var(--surface-panel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* --------------------------------------------------------------------------
+   4. Workspace Viewport
+   -------------------------------------------------------------------------- */
+
+.workspace-viewport {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-quiet);
+}
+
+.workspace-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.workspace-title {
+  margin: 0;
+  font-size: var(--font-size-title);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.workspace-subtitle {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
+/* Grid Utilities */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+.grid-split {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 1180px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .grid-split {
+    grid-template-columns: 1fr;
+  }
+}
