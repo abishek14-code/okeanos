@@ -45,7 +45,12 @@ export const TopBar: React.FC = () => {
     <header className="top-bar">
       {/* Left: Brand & Compact System Mode */}
       <div className="top-bar__left">
-        <div className="top-bar__brand">
+        <div className="top-bar__brand" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img
+            src="/logo.png"
+            alt="OKEANOS Logo"
+            style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }}
+          />
           <span>OKEANOS</span>
         </div>
 
