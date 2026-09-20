@@ -1,0 +1,83 @@
+{
+  "css_unchanged": 6,
+  "changes": [
+    {
+      "path": ".gitignore",
+      "change": "updated"
+    },
+    {
+      "path": "FORPPT.md",
+      "change": "updated"
+    },
+    {
+      "path": "README.md",
+      "change": "updated"
+    },
+    {
+      "path": "docs/HARDWARE_AND_WORKFLOW.md",
+      "change": "updated"
+    },
+    {
+      "path": "firmware/okeanos_gate/okeanos_gate.ino",
+      "change": "updated"
+    },
+    {
+      "path": "firmware/okeanos_gate/sensor_adapter.h",
+      "change": "removed redundant sketch/adapter"
+    },
+    {
+      "path": "okeanos_gate.ino",
+      "change": "removed redundant sketch/adapter"
+    },
+    {
+      "path": "package-lock.json",
+      "change": "updated"
+    },
+    {
+      "path": "package.json",
+      "change": "updated"
+    },
+    {
+      "path": "src/components/workspaces/AuditTrailConfig.tsx",
+      "change": "updated"
+    },
+    {
+      "path": "src/components/workspaces/CommandCenter.tsx",
+      "change": "updated"
+    },
+    {
+      "path": "src/components/workspaces/RecoveryFSM.tsx",
+      "change": "updated"
+    },
+    {
+      "path": "src/components/workspaces/UncertaintyCalibration.tsx",
+      "change": "updated"
+    },
+    {
+      "path": "src/context/TelemetryContext.tsx",
+      "change": "updated"
+    },
+    {
+      "path": "src/services/controller.ts",
+      "change": "updated"
+    },
+    {
+      "path": "src/services/serial.ts",
+      "change": "updated"
+    },
+    {
+      "path": "tests/controller.test.mjs",
+      "change": "updated"
+    },
+    {
+      "path": "tests/serial.test.mjs",
+      "change": "updated"
+    },
+    {
+      "path": "tests/ui-smoke.mjs",
+      "change": "updated"
+    }
+  ],
+  "firmware_sha256": "befdc0df686805ae39a270077d7010ffab6ed4838817ba88b332db3f65b22a4f",
+  "standalone_sha256": "6e7b29fa01cc11c29d7fcb178190345a5a79e50708c9efe9687ac8b66eae6375"
+}

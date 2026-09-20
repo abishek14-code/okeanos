@@ -1,0 +1,9 @@
+ESP32 target build: NOT COMPLETED / NOT VERIFIED.
+Attempt: python -m platformio run, environment esp32dev, espressif32 6.12.0.
+Dependency retrieval encountered repeated mirror read timeouts, HTTP 502 responses,
+and checksum failures (rejected by PlatformIO). Tool downloads eventually recovered,
+but a follow-up build remained at library-dependency retrieval and was stopped.
+No checksum validation was bypassed. No ESP32 target binary is claimed or included.
+Run python -m platformio run with working access to the dependency registries,
+or compile the standalone sketch in Arduino IDE using the documented libraries.
+The actual sketch separately passed the included native firmware logic harness.

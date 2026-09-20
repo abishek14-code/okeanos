@@ -274,12 +274,12 @@ export const CommandCenter: React.FC = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-quiet)', paddingBottom: '7px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Actuation Latency</span>
-                  <span style={{ color: 'var(--text-primary)' }}>{frame.valve_actuator.actuation_latency_ms} ms</span>
+                  <span style={{ color: 'var(--text-primary)' }}>{frame.valve_actuator.actuation_latency_ms ? `${frame.valve_actuator.actuation_latency_ms} ms` : 'Not measured'}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-quiet)', paddingBottom: '7px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Fail-Safe State</span>
-                  <span style={{ color: 'var(--feedback-success)' }}>ARMED (NC)</span>
+                  <span style={{ color: 'var(--feedback-success)' }}>Watchdog enabled</span>
                 </div>
               </div>
             </div>
@@ -506,9 +506,9 @@ export const CommandCenter: React.FC = () => {
                 type="checkbox"
                 id="hasDrainCheck"
                 checked={config.hasDrain}
-                onChange={(e) => {
+                onChange={async (e) => {
                   try {
-                    saveConfig({ ...config, hasDrain: e.target.checked });
+                    await saveConfig({ ...config, hasDrain: e.target.checked });
                     notify('Drain configuration updated');
                   } catch (err) {
                     notify(String(err));

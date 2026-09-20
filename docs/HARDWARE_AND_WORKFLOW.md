@@ -1,100 +1,89 @@
-# Hardware and software connection guide
+# Firmware / dashboard integration — protocol 2
 
-## Your original flowchart mapped to executable behavior
+## Hardware map retained from final_code_vinn.ino
 
-| Original block | Connected implementation | Output / interlock |
-|---|---|---|
-| Sensor acquisition, 1 Hz | `sensor_adapter.h` → ESP32 NDJSON → `HardwareSerial` → `GateController.step()` | TDS ppm, pH, water temperature, sequence, validity and freshness evidence |
-| Statistical baseline, 30 days | Source-specific minute aggregates of qualified samples | Mean, sigma and adaptive bands clamped by commissioning bounds |
-| Temporal recognition / flush | Violation duration, immediate measurement gating, recovery FSM | Transient/persistent labels do not delay a hard trip; commissioned drain command |
-| Cross-parameter correlation | Rolling TDS/pH and TDS/temperature Pearson correlations, diagonal standardized profile distance | Diagnostic relationships, unknown-source lockout; no contaminant identification |
-| Predictive membrane module | Observed/admitted/blocked stress integration | Input proxy for a future validated model; no invented replacement date |
-| Sensor fault / inference | Invalid/range/sequence/time/frozen checks before permission; regression estimate diagnostic only | Failed or inferred sensor cannot independently authorize opening |
-| Dual-mode risk | Joint deviation risk indicator; Protect / bounded Emergency modes | Emergency can relax only statistical gating, never hard measurement/source/freshness interlocks |
-| AND logic / valve | All measurement intervals AND source AND valid/fresh data AND recovery AND no manual latch | Mutually exclusive main/drain commands, acknowledgement monitoring, firmware local veto |
-
-The fault veto is evaluated before learning and actuation even though it appears later in the supplied conceptual flowchart. This prevents invalid measurements from entering the trusted baseline. This is a continuously repeating control loop, not a one-shot START-to-STOP program.
-
-## Fluid topology
-
-```mermaid
-flowchart TD
-    I["Incoming water"] --> C["Upstream sensing chamber"]
-    C --> M["Normally closed main valve"]
-    M --> R["RO membrane inlet"]
-    C --> D["Normally closed drain valve"]
-    D --> W["Drain collection"]
-    F["Independent chamber flow evidence"] --> C
-```
-
-The chamber must have fresh inlet-water flow during closed-main recovery. A drain branch is one option; a separate continuous sample loop is another. Opening a drain command is not proof that flushing happened. A commissioned flow sensor/switch or equivalent independent acquisition evidence must drive `fresh`. If none exists, report `fresh:false`; automatic reopening remains inhibited. Repeated timestamps, changing electrical noise and valve commands cannot establish freshness.
-
-The main valve isolates the membrane while the upstream drain is open. Main and drain commands never open simultaneously. Commission actuator travel delays/feedback for real plumbing; software command order cannot prove break-before-make mechanical motion. Never route the recovery flush through the protected membrane.
-
-## Electrical connections (reference, not a verified board schematic)
-
-| Connection | Destination / requirement |
+| Function | ESP32 GPIO / interface |
 |---|---|
-| ESP32 USB | Laptop USB port; 115200 baud; one application owns the serial port at a time |
-| TDS module output | Your sensor driver's ADC input, with the module's documented conditioning and calibrated temperature compensation |
-| pH module output | Proper high-impedance probe interface/module, then ADC; never attach a bare pH electrode directly to an ESP32 ADC |
-| Water-temperature sensor | Its actual digital/analog driver; ambient DHT readings are not water temperature |
-| Optional ADC | Use the actual ADC driver and input range, e.g. ADS1115 if fitted; do not silently assume onboard ESP32 ADC scaling |
-| GPIO 26 | Example **main driver control**, not solenoid power; confirm your ESP32 variant and pin availability |
-| GPIO 27 | Example **drain driver control**, not solenoid power; confirm your ESP32 variant and pin availability |
-| Valve coils | Suitable external supply and rated MOSFET/relay driver; flyback suppression for inductive DC coils |
-| Driver logic | Confirm active polarity; inactive pull resistor keeps outputs off during boot; common ground when required by a non-isolated driver |
-| Flow evidence | Independent sensing of flow through the chamber/sample loop, read in `readSensors()` |
+| TDS conditioned analogue output | GPIO32, ADC1, 12-bit raw counts |
+| TDS module power-control signal | GPIO5 |
+| pH conditioned analogue output | GPIO33, ADC1, 12-bit raw counts |
+| pH module power-control signal | GPIO23 |
+| DS18B20 data | GPIO4, 4.7 kΩ pull-up to 3.3 V |
+| Main output control / LED | GPIO17 |
+| Drain output control / LED | GPIO27 |
+| SH1106 OLED | I²C 0x3C, classic ESP32 SDA21 / SCL22 |
+| Keypad rows | 19, 18, 15, 14 |
+| Keypad columns | 13, 12, 26, 25 |
+| USB serial | 115200 baud, newline-delimited JSON |
+| Optional chamber flow switch | `FLOW_SWITCH_PIN=-1` means not fitted; configure a verified spare pin if fitted |
 
-There are no verified sensor models or calibration values in the uploaded code, so arbitrary analog pin numbers, voltage-to-pH coefficients and TDS conversion equations have intentionally not been invented. Fill in the adapter using your actual components.
+This pin map targets the original classic ESP32 sketch, not an ESP32-S3. GPIO12/15 are boot-strapping pins: check keypad/external pulls if boot or upload fails. Module power signals need suitable switching circuitry; a GPIO must not directly supply a module or solenoid beyond its rating. Keep conditioned analogue input within the board's ADC electrical limits. A pH electrode needs its proper interface module. ESP32 ADC gain/nonlinearity and probe settling still require bench verification.
 
-## Reference firmware commissioning
+## Firmware installation
 
-1. In Arduino IDE install the ESP32 board package and ArduinoJson 7. Open `firmware/okeanos_gate/okeanos_gate.ino`.
-2. Verify GPIO assignments, driver active polarity, external pull resistors and normally closed valve behavior with valve power disconnected.
-3. Implement `readSensors()` in `sensor_adapter.h`. Return already calibrated TDS/pH/water-temperature values. `valid` requires all three physical measurements. Keep `fresh` false until the chamber's actual fresh-water evidence is implemented.
-4. Set `DRAIN_COMMISSIONED=true` only after installing and checking the drain path. In the dashboard's Recovery workspace, set the corresponding drain-path option. The firmware and dashboard both default to no commissioned drain for first hardware use.
-5. Align the firmware hard ceilings and controller commissioning bounds with the installed membrane specification. A UI config change cannot remotely alter firmware ceilings.
-6. Compile/upload for your board, close Arduino Serial Monitor, run `npm run dev`, and open the app in Chrome/Edge on localhost.
-7. Select **Connect USB hardware**, select the device, and check measured inputs while both valve supplies remain disconnected. Startup is closed. The first firmware handshake is a CLOSED/CLOSED command.
-8. Verify packet validity, sensor units, measured reference samples and freshness detection. Only then test the driver/valve setup with a controlled demonstration loop.
+Canonical project sketch: `firmware/okeanos_gate/okeanos_gate.ino` with `gate_policy.h` beside it. The standalone delivered `final_code_vinn.ino` embeds that policy and has identical behavior.
 
-## Protocol
+Arduino IDE: select the actual ESP32 board; install ArduinoJson 7, Adafruit GFX, Adafruit SH110X, OneWire, DallasTemperature and Keypad. Preferences, LittleFS and Wire come with the ESP32 core. Compile/upload at a baud rate your board supports. The project also includes a pinned PlatformIO environment for `esp32dev`.
 
-Each UTF-8 JSON object ends with one newline. No banners/debug prints may share this serial channel. Packets larger than 16 KiB or malformed JSON produce a host fault. Firmware accepts command lines up to 512 bytes.
+`LittleFS.begin(false)` does not erase existing flash. If no filesystem is provisioned, acquisition and host audit still work and the status bar reports local log unavailable. To provision an empty filesystem with PlatformIO, use `pio run -t uploadfs` after confirming any existing device files may be overwritten. Local logging stops at 256 KiB instead of silently overwriting evidence; the host records up to 10,000 events per session.
 
-Device → host at 1 Hz:
+## Feature-to-hardware mapping
 
-```json
-{"type":"sample","seq":42,"tds":360.5,"ph":7.35,"temp":26.0,"valid":true,"fresh":true,"estimated":false}
-```
+| Existing dashboard feature | Integrated behavior | Location / prerequisite |
+|---|---|---|
+| Connect / disconnect | Closed-only protocol handshake, board identity, close on disconnect | Web Serial; integrated v2 firmware |
+| TDS / pH / temperature / histories | Real 1 Hz acquisition, validity, ADC counts and calibration metadata | ESP32 sensors |
+| Source selection / unknown lock | Restarts recovery and closes hardware; source-specific baseline retained | Host analytics; demonstration profiles must match commissioned sources |
+| Uncertainty / interval gate | Uses calibrated readings and configured uncertainty assumptions | Host; no estimated reading can authorize opening |
+| Calibration capture | Two-point TDS/pH affine fit; one-point temperature offset; acknowledgement after NVS save | ESP32; stable known standards |
+| Limit / drain configuration | Validated host configuration included in every output command; firmware validates inside hard ceilings | Firmware and host; drain capability must be enabled in firmware |
+| CUSUM / quarantine discard / admit / reset | Actions run against physical samples; only eligible stable samples admitted; closure commands acknowledged | Host; evidence conditions still apply |
+| Latch closed | Cancels purge and closes both outputs; persists across reconnect | Host latch + firmware output |
+| Auto / recover | Releases manual latch and requires fresh stable recovery before main permission | Host FSM + firmware local veto |
+| Emergency | Thirty minutes of statistical relaxation only; hard limits/freshness/sensor checks still enforced | Host; cannot directly force unsafe main opening |
+| Manual / automatic purge | Mutually exclusive drain output; requires commissioned path; closure latch preempts purge | Host timer + firmware watchdog |
+| Exposure accounting | Integrates observed sensor stress over previous command state | Command-based proxy, not measured membrane damage |
+| Audit, JSON/CSV export | Captures physical samples, actions, configuration and decisions | Host session; unsigned records |
+| Replay / challenge scenarios | Operate while hardware is disconnected | Deliberate simulation isolation |
+| Theme / navigation / chart controls | Existing behavior retained | UI only |
+| OLED / keypad / local CSV | Continue reading/reporting actual sensors and output GPIO state | ESP32; local manual mode restricted to LED builds |
 
-`seq` must strictly increase for the hardware session. Restart/reconnect resets the host sequence state. `fresh` describes physical sample freshness, not packet novelty. Optional `noise` contains nonnegative standard-uncertainty components by sensor; absent values are estimated from recent readings with configured floors. Inferred sensor replacements must be marked `estimated:true`, which blocks permission.
+## Calibration procedure
 
-Host → device after each sample or operator action:
+1. Keep outputs closed and connect the dashboard. Invalid/uncommissioned readings are visible so commissioning is possible; they cannot authorize main opening.
+2. Select pH. Put the probe in a known standard, wait for stable readings, enter its actual reference value and click **Capture reference**. The response says **Point 1 captured**.
+3. Move to a second known standard, wait at least five stable sample cycles, and capture its value. The references must differ by at least 1 pH and 50 raw counts. Negative pH sensor slopes are supported. The second point saves the affine coefficients and timestamp in ESP32 NVS.
+4. Repeat for TDS, using standards separated by at least 50 ppm and 50 raw counts. TDS requires a positive slope. The firmware assumes a linear local calibration region; verify a third reference across the intended operating range. Some TDS modules require their manufacturer's nonlinear conversion instead.
+5. Temperature calibration is optional and uses a single known water-temperature reference to set an offset. Sensor disconnection and DS18B20's 85 °C startup sentinel remain faults.
+6. After either completed calibration, re-establish freshness and run recovery. Calibration invalidates accumulated host baseline/quarantine so previously scaled values are not mixed into learning.
 
-```json
-{"type":"command","seq":14,"main":"CLOSED","drain":"OPEN","ttl_ms":2500}
-```
+A pending first point expires after 15 minutes and resets on a new connection or reboot. Start a new pair by disconnecting/reconnecting. Acquisition must remain healthy; a request naming an old sample is rejected so a moved probe cannot silently calibrate stale data. Reference captures use raw ADC counts, not already calibrated values. Firmware-calibrated packets bypass host offsets, preventing double calibration.
 
-Device acknowledgement:
+Original `TDS_TEMP_COEFFICIENT=0` is retained because the probe/module specification was not provided. With zero, calibrate and measure at the reference temperature; no compensation is claimed. If a validated coefficient is fitted, use reference values applicable at calibration temperature and validate the conversion across temperatures. `u_cal` values remain commissioning assumptions, not residuals measured by two points.
 
-```json
-{"type":"ack","seq":14,"main":"CLOSED","drain":"OPEN"}
-```
+## LED bench versus real valves
 
-ACK reports applied firmware command state. A mismatched state (including a local device veto) latches a host fault; it never gets described as successful physical movement. The host trips on missing samples/ACKs after three seconds; the firmware independently drops both outputs when command TTL expires after 2.5 seconds. The firmware also vetoes invalid/stale/freshness-failed or hard-limit-failed main opening. If the host freezes, the hardware must still close.
+Default `LED_EMULATOR=true`, `DRAIN_COMMISSIONED=true`, `ACTIVE_HIGH=true`. This matches the uploaded LED prototype. **#** asserts LED-test freshness for 120 seconds, explicitly reported as `operator_led_test`. It does not establish that water moved. The host also displays `LED_EMULATOR` and unverified physical position.
 
-## Bench verification still required
+For actual valves, set `LED_EMULATOR=false`, verify driver active polarity, and commission the drain branch before setting `DRAIN_COMMISSIONED=true`. Fit and configure an independent chamber-flow switch on a verified spare pin, with appropriate electrical conditioning/pull resistor. Configure `FLOW_ACTIVE_LOW` to match it. An absent input leaves `fresh=false`; main cannot reopen. A stuck switch is not independently diagnosable by this implementation, so validate switch failure behavior and chamber exchange time before physical use. Flow-present indication is not measured volume.
 
-- Sensor conversion/calibration against known references and realistic electrical noise.
-- Real chamber refresh and drain-flow evidence with main valve closed.
-- Main/drain polarity, supply sizing and fail-closed behavior on boot, USB unplug, host crash and ESP32 reset.
-- Valve transit time and actual physical leakage/position/flow; no 35 ms response claim is made.
-- Arduino board compilation and Tauri native packaging on the target machine.
+The sensing chamber must receive fresh inlet water while main is closed. A separate continuously flowing sample loop or upstream drain branch can provide it. Use **Request purge** to establish flow when automatic recovery is waiting for freshness; command state alone never proves flushing. Flow evidence must correspond to the actual sensing chamber.
 
-The included automated tests verify software control and mocked serial behavior. They cannot establish plumbing safety, hardware timing or actual water-quality protection.
+Main/drain software mutual exclusion does not establish mechanical break-before-make timing, valve closure or leakage. Real valves need suitable normally closed drivers, power supplies, flyback suppression and boot-inactive pulls. Calibrate on a controlled bench before connecting a protected membrane.
+
+## Protocol / failure behavior
+
+All messages are JSON objects followed by `\n`. There are no application debug strings on the serial channel. ROM boot text is ignored only before negotiation.
+
+- `hello` request with `id`: firmware closes outputs, exits local test, resets the host command sequence and responds with protocol 2, device identity and capabilities.
+- `command`: `seq`, `main`, `drain`, `ttl_ms`, `limits` (tds/ph/temp pairs), `has_drain`, `config_version`. Firmware ACK returns actual GPIO command states, applied configuration version, `ok`, and veto `reason`.
+- `calibrate`: `id`, `sensor`, `reference`, current `sample_seq`, and Unix `epoch`. Firmware responds with correlated success/failure and first-point/saved status.
+- `sample`: measurements, raw TDS/pH counts, `sensor_valid`, `calibrated`, `valid`, `fresh`, freshness basis, calibration timestamps, output GPIO state, mode, actuator kind, log/NVS status and monotonic sequence.
+
+Opening requires calibrated valid measurements, independent freshness in a real-valve build, local sample age ≤1.5 seconds, limits inside TDS 0–800 ppm / pH 6.5–8.5 / 10–45 °C, and a live command lease. These inherited example hard limits must be reviewed for the actual membrane. Dashboard configuration can tighten them but cannot raise them. Firmware drops both outputs when the command lease reaches 2.5 seconds. Host rejects missing/mismatched ACKs, malformed packets, restarted/repeated sample sequences, local mode changes and telemetry loss.
+
+The dashboard waits for command ACK before reporting an action applied; ACK means GPIO command application, not measured valve travel. Statistical policies remain host-owned; there is no safe autonomous opening after host loss. A reset always starts closed and requires a new handshake/recovery.
 
 ## API references
 
-The USB implementation follows the stream reader/writer and device-selection model in [Chrome's Web Serial documentation](https://developer.chrome.com/docs/capabilities/serial). If your acquisition adapter uses the ESP32 ADC, use its documented calibrated/raw APIs and device-specific input ranges in [Espressif's ADC API](https://docs.espressif.com/projects/arduino-esp32/en/latest/api/adc.html).
+Implementation follows [Espressif Preferences](https://docs.espressif.com/projects/arduino-esp32/en/latest/api/preferences.html), [ESP32 ADC APIs](https://docs.espressif.com/projects/arduino-esp32/en/latest/api/adc.html) and [ArduinoJson 7 deserialization](https://arduinojson.org/v7/tutorial/deserialization/). Hardware calibration and electrical compatibility still depend on the actual installed modules.

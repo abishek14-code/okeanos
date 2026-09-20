@@ -1,0 +1,1 @@
+Firmware native integration passed: handshake, freshness, mutual exclusion, ceilings, drain, TTL, sensor age, sequence, two-point calibration, persistence and mode takeover.

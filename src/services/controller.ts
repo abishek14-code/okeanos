@@ -9,6 +9,10 @@ export interface Sample {
   seq: number; tds: number; ph: number; temp: number;
   valid: boolean; fresh: boolean; estimated?: boolean;
   noise?: Partial<Record<Sensor, number>>;
+  protocol?:number; raw_tds?:number; raw_ph?:number; sensor_valid?:boolean; calibrated?:boolean;
+  calibration_at?:Partial<Record<Sensor,number>>; calibration_ready?:Partial<Record<Sensor,boolean>>;
+  control_mode?:string; local_override?:boolean; actuator_kind?:string; freshness_basis?:string; physical_flow_verified?:boolean;
+  main?:'OPEN'|'CLOSED'; drain?:'OPEN'|'CLOSED'; log_ok?:boolean; nvs_ok?:boolean;
 }
 export interface Config {
   limits: Record<Sensor, [number, number]>;
@@ -30,6 +34,7 @@ export type Action =
  | {type:'purge'; seconds:number}
  | {type:'config'; config:Config}
  | {type:'calibrate'; sensor:Sensor; reference:number}
+ | {type:'device_calibration'; sensor:Sensor; at:number; message:string}
  | {type:'restart'};
 export type TraceEvent = {kind:'sample'; sample:Sample; now:number; decision?:unknown} | {kind:'action'; action:Action; now:number};
 export interface Recording { schema:'okeanos-replay-v1'; synthetic:boolean; events:TraceEvent[]; truncated:boolean; initial?:unknown }
@@ -62,7 +67,7 @@ export class GateController {
  private stableSince:number|null=null;
  private recoverySince:number|null=null;
  private stateStarted=0;
- private lastFresh=0;
+ private lastFresh:number|null=null;
  private calibration:Record<Sensor,{offset:number;at:number}>={tds:{offset:0,at:0},ph:{offset:0,at:0},temp:{offset:0,at:0}};
  diagnostics={fault:'Awaiting samples', temporal:'STARTUP', anomalyScore:0, riskScore:0, baselineLimits:structuredClone(HARD), mode:'PROTECT', sampleFresh:false, correlationTdsPh:0, correlationTdsTemp:0, diagnosticTdsEstimate:0};
  private record(event:TraceEvent) { if(this.records.length<10000)this.records.push(structuredClone(event));else this.truncated=true; }
@@ -71,6 +76,7 @@ export class GateController {
  }
  private close(reason:SystemFlightRecorderFrame['valve_actuator']['blockage_reason']) {
   if(this.frame.valve_actuator.main_solenoid_state==='OPEN')this.frame.valve_actuator.total_cycles_logged++;
+  this.purgeUntil=0;
   this.frame.valve_actuator.main_solenoid_state='CLOSED';
   this.frame.valve_actuator.drain_flush_state='CLOSED';
   this.frame.valve_actuator.blockage_reason=reason;
@@ -114,6 +120,7 @@ export class GateController {
    this.sPlus=0;this.sMinus=0;this.drift=false;this.history=[];this.stableCount=0;
    this.close(this.unknown?'UNKNOWN_SOURCE':'SOURCE_CHANGE');
   } else if(a.type==='purge') {
+   if(this.manual)throw new Error('Release the closed latch with Auto / recover before requesting purge');
    if(!this.config.hasDrain)throw new Error('No commissioned drain path; fresh sampling must be provided separately');
    if(!Number.isInteger(a.seconds)||a.seconds<5||a.seconds>120)throw new Error('Purge duration must be 5–120 seconds');
    this.close('PURGE');this.purgeUntil=now+a.seconds;this.frame.valve_actuator.drain_flush_state='OPEN';
@@ -122,6 +129,12 @@ export class GateController {
    this.calibration[a.sensor]={offset:a.reference-this.lastSample[a.sensor],at:now};
    this.config={...this.config,version:this.config.version+1};
    this.close('RECOVERY');this.history=[];
+  } else if(a.type==='device_calibration') {
+   if(!KEYS.includes(a.sensor)||!Number.isFinite(a.at)||a.at<0)throw new Error('Invalid device calibration');
+   this.calibration[a.sensor]={offset:0,at:a.at};this.config={...this.config,version:this.config.version+1};
+   this.close('RECOVERY');this.history=[];this.held=[];
+   this.buckets={MUNICIPAL:[],BOREWELL:[],RAINWATER:[]};this.sPlus=0;this.sMinus=0;this.drift=false;
+   this.log(a.message,now,'CALIBRATION');
   } else if(a.type==='quarantine') {
    if(!['DISCARD','ADMIT_TO_BASELINE','RESET_CUSUM'].includes(a.action))throw new Error('Unknown quarantine action');
    if(a.action==='ADMIT_TO_BASELINE') {
@@ -136,12 +149,14 @@ export class GateController {
   } else throw new Error('Unknown controller action');
   if(record)this.record({kind:'action',action:a,now});
   this.log(`Operator action: ${a.type}`,now);
+  this.frame.flight_recorder_log=[{id:`action-${this.records.length}-${now}`,timestamp:new Date(now*1000).toISOString(),event_type:a.type==='purge'?'PURGE_TRIGGER':a.type==='restart'?'SYSTEM_BOOT':a.type==='quarantine'?'QUARANTINE_FREEZE':`OPERATOR_${a.type.toUpperCase()}`,trigger:JSON.stringify(a),value_recorded:0,hash_signature:'Not signed'},...this.frame.flight_recorder_log].slice(0,300);
   return 'Applied. All measurement and recovery interlocks remain active.';
  }
  step(input:Sample, now:number, record=true):SystemFlightRecorderFrame {
   if(!Number.isFinite(now)||now<0)throw new Error('Invalid sample timestamp');
   if(record)this.record({kind:'sample',sample:input,now});
-  const f=this.frame, previousValve=f.valve_actuator.main_solenoid_state, previousState=f.fsm_recovery.current_state;
+  const f=this.frame, previouslyFrozen=this.frame.quarantine_engine.learning_frozen, previousValve=f.valve_actuator.main_solenoid_state, previousState=f.fsm_recovery.current_state;
+  if(this.lastTime===null)f.flight_recorder_log=[{id:`boot-${now}`,timestamp:new Date(now*1000).toISOString(),event_type:'SYSTEM_BOOT',trigger:'New acquisition session; closed startup',value_recorded:0,hash_signature:'Not signed'},...f.flight_recorder_log].slice(0,300);
   const elapsed=this.lastTime===null?0:now-this.lastTime;
   const dt=Math.max(0,Math.min(3,elapsed));
   // Left-endpoint integral: account for the reading and command applied over the preceding interval.
@@ -154,13 +169,18 @@ export class GateController {
   const gap=this.lastTime!==null&&elapsed>3;
   let fault=(!finiteSample(input)||input.valid!==true||input.estimated===true)?'Invalid, disconnected or estimated sensor':!ordered?'Missing, duplicate or out-of-order sample':'';
   if(gap)fault='Telemetry gap exceeded 3 seconds';
-  const s={...input};KEYS.forEach(k=>s[k]+=this.calibration[k].offset);
+  const s={...input};KEYS.forEach(k=>{
+   if(input.protocol===2) { // ESP32 calibration is authoritative; never apply a second host offset.
+    this.calibration[k].offset=0;
+    const at=input.calibration_at?.[k];if(Number.isFinite(at)&&at!>=0)this.calibration[k].at=at!;
+   } else s[k]+=this.calibration[k].offset;
+  });
   if(!fault && (s.tds<0||s.tds>5000||s.ph<0||s.ph>14||s.temp<0||s.temp>85))fault='Sensor value outside plausible acquisition range';
   if(input.noise && KEYS.some(k=>input.noise?.[k]!==undefined && (!Number.isFinite(input.noise[k])||input.noise[k]!<0)))fault='Invalid uncertainty metadata';
   if(finiteSample(input)&&input.seq>this.lastSeq)this.lastSeq=input.seq;
   if(!fault)this.history=[...this.history,s].slice(-60);
   else this.history=[];
-  if(this.history.length>=30&&KEYS.some(k=>this.history.slice(-30).every(x=>x[k]===s[k])))fault='Frozen sensor suspected: 30 identical consecutive values';
+  if(this.history.length>=30&&(input.protocol===2 ? this.history.slice(-30).every(x=>x.raw_tds===s.raw_tds&&x.raw_ph===s.raw_ph&&x.temp===s.temp) : KEYS.some(k=>this.history.slice(-30).every(x=>x[k]===s[k]))))fault='Frozen sensor suspected: 30 identical consecutive values';
   for(const p of Object.keys(this.buckets) as Profile[])this.buckets[p]=this.buckets[p].filter(b=>b.minute>=Math.floor((now-30*86400)/60));
   const b=this.baseline();
   const distances=Object.values(SOURCE_PROFILES).map(p=>calculateMahalanobisDistance(s.tds,s.ph,s.temp,p));
@@ -173,6 +193,7 @@ export class GateController {
   KEYS.forEach((k,i)=>{
    const m=f.telemetry[k],age=this.calibration[k].at?Math.max(0,(now-this.calibration[k].at)/86400):0;
    const noise=Math.max([2,0.01,0.03][i],sd(this.history.slice(-10).map(s=>s[k])),Number.isFinite(input.noise?.[k])?input.noise![k]!:0);
+   m.raw_adc=k==='tds'?(input.raw_tds??0):k==='ph'?(input.raw_ph??0):0;
    m.value=Number.isFinite(s[k])?s[k]:m.value;
    m.u_noise=noise;m.u_age=[0.1,0.001,0.002][i]*age;
    m.uncertainty=calculateExpandedUncertainty(m.u_cal,noise,m.u_age,this.config.k);
@@ -187,7 +208,7 @@ export class GateController {
   });
   const adaptiveOK=KEYS.every(k=>s[k]>=this.diagnostics.baselineLimits[k][0]&&s[k]<=this.diagnostics.baselineLimits[k][1]);
   const fresh=ordered&&!fault&&input.fresh===true;
-  if(fresh)this.lastFresh=now;
+  if(this.lastFresh===null||fresh)this.lastFresh=now;
   const statisticallyStable=this.history.length>=5&&KEYS.every((k,i)=>sd(this.history.slice(-5).map(s=>s[k]))<=[8,0.04,0.2][i]);
   const emergency=now<this.emergencyUntil;
   const recoveryQualified=intervalsOK&&insideHysteresis&&sourceOK&&!fault&&fresh&&statisticallyStable&&(emergency||adaptiveOK);
@@ -221,6 +242,7 @@ export class GateController {
   if(previousValve!==f.valve_actuator.main_solenoid_state)f.valve_actuator.total_cycles_logged++;
   f.valve_actuator.chatter_lockout_active=!open;
   const frozen=!open||!qualified||emergency;
+  if(frozen&&!previouslyFrozen)f.flight_recorder_log=[{id:`freeze-${now}`,timestamp:new Date(now*1000).toISOString(),event_type:'QUARANTINE_FREEZE',trigger:reason,value_recorded:s.tds,hash_signature:'Not signed'},...f.flight_recorder_log].slice(0,300);
   if(!fault) {
    if(!frozen)this.commit(s,now);
    else this.held=[...this.held,{sample:s,time:now,profile:this.profile,eligible:qualified&&!emergency&&!this.manual,version:this.config.version}].slice(-3600);
@@ -246,7 +268,7 @@ export class GateController {
   f.recovery_fsm={...recovery,current_state:purging?'PURGE_ACTIVE':nextState==='NORMAL'?'NORMAL_FLOW':nextState==='RESTORED'?'GATE_RESTORED':nextState==='RECOVERY_CHECK'?(statisticallyStable?'RESIDUAL_HOLD':'SENSOR_SETTLING'):'ANOMALY_LOCKOUT'};
   f.anti_stagnation.time_until_purge_s=Math.max(0,14400-(now-this.lastFresh));
   // Automatic four-hour purge requires a commissioned drain; it never bypasses recovery.
-  if(!this.manual&&this.config.hasDrain&&now-this.lastFresh>=14400&&!purging){this.purgeUntil=now+this.config.purgeSeconds;this.lastFresh=now;}
+  if(!this.manual&&this.config.hasDrain&&now-this.lastFresh>=14400&&!purging){this.purgeUntil=now+this.config.purgeSeconds;this.lastFresh=now;f.flight_recorder_log=[{id:`purge-${now}`,timestamp:new Date(now*1000).toISOString(),event_type:'STAGNATION_PURGE',trigger:'Four-hour sampling inactivity',value_recorded:this.config.purgeSeconds,hash_signature:'Not signed'},...f.flight_recorder_log].slice(0,300);}
   const e=f.exposure_accounting;e.cmsi_current=e.admitted_exposure_cmsi;
   e.damage_reduction_pct=100*e.prevented_exposure_cmsi/(e.admitted_exposure_cmsi+e.prevented_exposure_cmsi||1);
   e.membrane_rul_pct=0;e.days_remaining_projected=0;
@@ -269,7 +291,7 @@ export class GateController {
  }
  stale(now:number) { return this.step({seq:this.lastSeq,tds:0,ph:0,temp:0,valid:false,fresh:false},now); }
  export(synthetic=true):Recording {return {schema:'okeanos-replay-v1',synthetic,events:structuredClone(this.records),truncated:this.truncated,initial:this.initial};}
- checkpoint() {return {schema:1,config:this.config,buckets:this.buckets,exposure:this.frame.exposure_accounting,profile:this.profile,calibration:this.calibration,manual:this.manual,cycles:this.frame.valve_actuator.total_cycles_logged};}
+ checkpoint() {return {schema:1,unknown:this.unknown,config:this.config,buckets:this.buckets,exposure:this.frame.exposure_accounting,profile:this.profile,calibration:this.calibration,manual:this.manual,cycles:this.frame.valve_actuator.total_cycles_logged};}
  restore(value:unknown) {
   const p=value as ReturnType<GateController['checkpoint']>;
   if(!p||p.schema!==1)throw new Error('Unsupported checkpoint');
@@ -281,7 +303,7 @@ export class GateController {
   if(!Object.values(p.exposure).every(x=>Number.isFinite(x)&&x>=0))throw new Error('Invalid exposure checkpoint');
   if(KEYS.some(k=>!p.calibration[k]||!Number.isFinite(p.calibration[k].offset)||!Number.isFinite(p.calibration[k].at)))throw new Error('Invalid calibration checkpoint');
   this.buckets=structuredClone(p.buckets);this.profile=p.profile;this.calibration=structuredClone(p.calibration);
-  this.frame.exposure_accounting=structuredClone(p.exposure);this.manual=!!p.manual;
+  this.frame.exposure_accounting=structuredClone(p.exposure);this.manual=!!p.manual;this.unknown=!!p.unknown;
   this.frame.valve_actuator.total_cycles_logged=Number.isSafeInteger(p.cycles)&&p.cycles>=0?p.cycles:0;
   this.initial=structuredClone(p);
   this.close('STARTUP'); // Never restore permission, timers, or emergency override from disk.

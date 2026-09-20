@@ -1,3 +1,5 @@
+> Archived narrative from the input project. For the delivered implementation and verified limitations, use README.md and docs/HARDWARE_AND_WORKFLOW.md.
+
 
 # OKEANOS: Adaptive Water Quality Gate & Metrological Edge Controller
 ## Comprehensive Master Presentation Reference & Slide-Deck Resource (FORPPT.md)

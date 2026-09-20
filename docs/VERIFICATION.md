@@ -1,70 +1,38 @@
-# Verification — 18 September 2026
+# Verification of the integrated delivery
 
-## Executed checks
+## Completed
 
-| Check | Result |
-|---|---|
-| TypeScript strict checks + Vite production bundle | Passed (`npm run build`) |
-| Controller and serial-protocol tests | 28 passed, 0 failed (`npm test`) |
-| Browser integration in Chromium | All eight workspaces load; startup recovery, manual latch/AUTO, source action, challenge injection, replay export/import, mocked USB opening and timeout closure passed without runtime exceptions |
-| Shell layout | Main content is beside the sidebar; fixed missing shell selectors and undefined typography/surface aliases; screenshot inspected |
-| Deterministic challenge suite | Ten scenarios executed through the actual controller and an explicit nominal-threshold comparator |
-| ESP32 physical I/O and plumbing | Not tested; no physical hardware connected |
-| Arduino compilation / target-board upload | Not executed in this environment |
-| Tauri native compilation / packaging | Not executed in this environment; browser production build was checked |
+- `npm run build`: TypeScript check and Vite production build passed.
+- `npm test`: **37 tests passed**, including the real React telemetry provider and mounted recovery, calibration and audit workspaces with a mocked USB device.
+- `sh tests/native/run.sh`: the **actual production firmware sketch** passed native C++ tests using real ArduinoJson parsing and mocked peripheral APIs.
+- `npm run test:challenges`: all ten synthetic scenarios executed; results are in `challenge-results.json`. They are software simulations, not measured hardware performance.
+- All **six original CSS files are byte-identical** to the uploaded project. No layout/style redesign was made. UI changes are hardware calibration wording/button text, asynchronous acknowledgement/error handling, configuration form synchronization, and replacing unsupported zero-latency/NC claims with truthful status text.
 
-## Material fixes
+Detailed software output: `software-tests.txt`, `dashboard-build.txt`, `firmware-native-tests.txt`.
 
-- Corrected the expanded-uncertainty formula: the original divided k by two and understated the interval.
-- Interval overlap, invalid/estimated/frozen/stale sensors, unknown sources and hard-limit breaches now deny permission immediately.
-- Manual closure persists; AUTO and restart require recovery instead of reopening unconditionally.
-- Both recovery-state names used by the existing frontend now derive from one FSM.
-- Source selection changes the controller; separate source baselines prevent mixed-source learning.
-- Quarantine contains actual samples and eligibility/configuration versions. Validation cannot blindly add a displayed count to the baseline.
-- Configuration and single-point calibration buttons update the controller and restart recovery; removed simulated commit/EEPROM success claims.
-- Challenges inject measurements rather than forcing a scripted output. Comparator transitions and exposure derive from the trace.
-- JSON export includes replayable samples/actions plus uncertainty, source, configuration, learning status, decision, commands and exposure. Local records are explicitly unsigned.
-- Serial packets are framed and validated. ACKs must match issued commands; missing ACKs or acquisition data latch closure. The reference firmware independently expires commands.
-- Simulation/replay cannot write hardware commands. Real hardware input never silently falls back to random readings.
-- Removed unsupported claims of verified contamination identity, measured 35 ms actuation, zero leakage, 100% hazard diversion and known membrane life.
+## Tested behavior
 
-## Selected synthetic results
+Host tests cover startup/recovery, all sensor limits, uncertainty overlap, source lock, invalid/stale/estimated samples, quarantine eligibility, CUSUM, exposure integration, override limits, purge mutual exclusion, configuration validation, export/replay, per-board persistence, raw ADC mapping, firmware calibration without a duplicate host offset, and quantized temperature readings.
 
-The exact output is in `challenge-results.json`. These are sample-level software results, not measured physical response times. One sample interval is nominally one second; zero-sample detection delay means the first violating sample caused a closed command.
+Serial tests cover boot negotiation, fragmented packets, applied-state/configuration acknowledgements, malformed packets, local-mode conflict, explicit firmware vetoes, pending-command expiry and calibration responses. The React integration drives hardware recovery, drain configuration/purge, closure latch, calibration, source selection, recovery, audit export and disconnect using the actual provider.
 
-| Scenario | First closure after injected event | OKEANOS transitions | Nominal comparator transitions |
-|---|---:|---:|---:|
-| Gradual TDS increase | 30 samples | 2 | 1 |
-| Source step | 0 samples | 2 | 3 |
-| Disconnected sensor | 0 samples | 2 | 2 |
-| Frozen sensor | 29 samples | 2 | 1 |
-| Uncertainty/source excursion near upper TDS limit | 0 samples | 2 | 1 |
-| Threshold chatter | 0 samples | 2 | 61 |
-| Recovery followed by relapse | 0 samples | 4 | 4 |
-| pH breach | 0 samples | 2 | 2 |
-| Temperature breach | 0 samples | 2 | 2 |
+Firmware native tests cover closed boot, protocol acquisition, closed-only handshake, freshness veto, mutually exclusive outputs, configured and compiled limits, command TTL, independent sensor age, duplicate command rejection, two-point calibration including a negative pH slope, persistence API calls, stale capture rejection and local-mode takeover.
 
-The nominal comparator opens immediately on acceptable nominal values and learns a 60-sample rolling mean without qualification. OKEANOS has a conservative startup/recovery hold. Exposure totals include those startup differences; they do not isolate the causal contribution of each feature. Near-limit scenarios may trigger multiple interlocks, including source mismatch. A separate test holds the mean constant and increases only the uncertainty input to isolate uncertainty gating.
+## Limits of verification
 
-In the recovery/relapse trace, recovery occurs at sample 90 after the excursion ends at sample 52: the controller discards unstable history and requires a complete fresh stable window. The report counts 38 acceptable nominal samples held closed during this interval. These are expected recovery holds, not automatically classified as nuisance failures.
+- No physical ESP32, sensors, keypad, OLED, valves or plumbing are attached here. Sensor accuracy, power polarity, physical travel/closure, flow-switch placement, acquisition settling time, NVS endurance and real timing need bench validation.
+- Browser visual/Playwright execution could not run in this environment: Chromium launch was blocked by the environment's socket restrictions. React integration tests ran in jsdom instead. The input screenshot `dashboard-verified.png` is retained as an original reference, not represented as new evidence.
+- The Tauri wrapper is unchanged and has no native serial transport. Use the Chrome/Edge browser dashboard for hardware.
+- ESP32 target-build outcome is recorded separately in `esp32-build-status.txt`; native C++ tests alone are not a target build.
 
-## Reproduce
+## Bench acceptance after flashing
 
-```bash
-npm ci
-npm test
-npm run test:challenges
-npm run build
-npx playwright install chromium
-npm run test:ui
-```
-
-Use Node 24. UI tests start/stop a local Vite process and use browser-controlled time. The serial test device is a software stream emulator: it verifies the complete UI → controller → transport → ACK route, but does not validate ESP32 pins or real valve movement.
-
-## Remaining commissioning limits
-
-The uploaded archive did not provide probe models, acquisition drivers, actual ADC connections or calibration constants. `sensor_adapter.h` therefore returns invalid data by default. Replace it with the actual calibrated sensor drivers and independently measured sample freshness. The current firmware is a reference integration scaffold, not an already-tested hardware build.
-
-Manufacturer limits, source priors, uncertainty budgets, sensor-stuck tolerances and hydraulic timing require commissioning. Frozen-value detection is conservative: a low-resolution sensor reporting exactly identical values can produce a false fault. Prototype local storage is not a secure recorder; clear the hardware checkpoint when changing probes/devices. The single-point offset tool cannot certify sensor slope or uncertainty.
-
-A flow/position sensor is needed to verify actual actuation and admitted volume. Permeate flow, rejection and pressure data plus validated modelling are needed to predict membrane life. These unsupported quantities are not presented as measured outputs.
+1. Verify both GPIO outputs inactive on boot and while disconnected. Start with the original LEDs.
+2. Connect USB in Chrome/Edge; confirm board identity, actuator kind and live raw/calibrated readings. Old v1 firmware must be rejected.
+3. Capture known two-point TDS/pH standards, reboot, reconnect and verify coefficients against an independent third reference. Test temperature disconnect and ADC saturation.
+4. Assert LED-test freshness with **#**, select the appropriate source, and verify main opens only after fresh acceptable recovery. Let freshness expire and verify closure.
+5. Commission the drain checkbox, request purge, then press **Latch closed**. Verify both outputs close and the drain stays closed on subsequent samples.
+6. Change a dashboard limit to exclude the reading. Verify both dashboard blocking and local firmware veto. Try invalid/expanded ceilings and verify rejection.
+7. Unplug USB, stop host traffic and reset ESP32 independently. Measure closure timing and verify no permission survives reset. Reconnect and explicitly release a persisted manual latch with Auto / recover.
+8. Verify profiles, quarantine actions, configuration and audit exports with real sensor transitions. Synthetic challenge/replay must remain disconnected from hardware.
+9. For real valves, complete the separate driver, freshness-input and plumbing commissioning described in `HARDWARE_AND_WORKFLOW.md`. Without the additional evidence, do not treat LED states as verified water control.

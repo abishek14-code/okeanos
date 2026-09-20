@@ -16,9 +16,9 @@ interface Context {
  triggerPurge:(durationSecs?:number)=>Promise<string>;
  setSourceProfile:(profile:'MUNICIPAL'|'BOREWELL'|'RAINWATER'|'UNKNOWN')=>Promise<string>;
  startChallenge:(id:string,intensity?:number)=>void;stopChallenge:()=>void;resetToLive:()=>void;
- calibrateSensor:(sensor:Sensor,reference:number)=>void;
+ calibrateSensor:(sensor:Sensor,reference:number)=>Promise<string>;
  exportFlightRecorder:(format:'json'|'csv')=>string;
- saveConfig:(config:Config)=>string;connectHardware:()=>Promise<void>;disconnectHardware:()=>Promise<void>;
+ saveConfig:(config:Config)=>Promise<string>;connectHardware:()=>Promise<void>;disconnectHardware:()=>Promise<void>;
  loadReplay:(text:string)=>void;
 }
 const TelemetryContext=createContext<Context|undefined>(undefined);
@@ -32,28 +32,39 @@ export const TelemetryProvider:React.FC<{children:React.ReactNode}>=({children})
  const challenge=useRef(emptyChallenge());const legacy=useRef(new LegacyController());
  const [oscilloscopeHistory,setHistory]=useState<Context['oscilloscopeHistory']>([]);
  const serial=useRef<HardwareSerial|null>(null);const serialStarted=useRef(0);const sampleCount=useRef(0);
- const scenarioIntensity=useRef(100);const replay=useRef<{data:Recording;index:number}|null>(null);
+ const deviceKey=useRef('');const latestSeq=useRef(0);const calibrating=useRef(false);const actionBusy=useRef(false);
+ const localOverride=useRef(false);const scenarioIntensity=useRef(100);const replay=useRef<{data:Recording;index:number}|null>(null);
  const publish=()=>{setFrame(structuredClone(engine.current.frame));setLogs([...engine.current.logs]);};
  const trace=(f:SystemFlightRecorderFrame)=>setHistory(h=>[...h,{time:new Date(f.timestamp*1000).toISOString().slice(11,19),tds:f.telemetry.tds.value,tdsUpper:f.telemetry.tds.value+f.telemetry.tds.uncertainty,tdsLower:f.telemetry.tds.value-f.telemetry.tds.uncertainty,ph:f.telemetry.ph.value,temp:f.telemetry.temp.value,phUpper:f.telemetry.ph.value+f.telemetry.ph.uncertainty,phLower:f.telemetry.ph.value-f.telemetry.ph.uncertainty,tempUpper:f.telemetry.temp.value+f.telemetry.temp.uncertainty,tempLower:f.telemetry.temp.value-f.telemetry.temp.uncertainty}].slice(-60));
  const setOperatingMode=(m:Mode)=>{modeRef.current=m;setMode(m);};
  const saveCheckpoint=()=>{
   if(modeRef.current!=='HARDWARE')return;
-  try{localStorage.setItem('okeanos-hardware-checkpoint-v1',JSON.stringify(engine.current.checkpoint()));}catch{setConnection('Hardware active; checkpoint storage unavailable. Restart will remain closed.');}
+  try{localStorage.setItem(deviceKey.current,JSON.stringify(engine.current.checkpoint()));}catch{setConnection('Hardware active; checkpoint storage unavailable. Restart will remain closed.');}
  };
  const fault=(message:string)=>{
-  engine.current.action({type:'override',mode:'FORCE_CLOSE'},Date.now()/1000);
+  engine.current.action({type:'override',mode:'FORCE_CLOSE'},Date.now()/1000);saveCheckpoint();
   engine.current.stale(Date.now()/1000);publish();setConnection(message+' • closure latched; reconnect after fixing');
   const port=serial.current;serial.current=null;void port?.disconnect();
  };
- const send=()=>{
+ const send=async()=>{
   const port=serial.current;if(modeRef.current!=='HARDWARE'||!port)return;
+  if(port.localOverride)return; // Keypad holds the outputs; the host stays quiet.
   const v=engine.current.frame.valve_actuator;
-  void port.command(v.main_solenoid_state,v.drain_flush_state).catch(e=>fault(String(e)));
+  try{await port.command(calibrating.current?'CLOSED':v.main_solenoid_state,calibrating.current?'CLOSED':v.drain_flush_state,engine.current.config);}
+  catch(e){if(serial.current===port)fault(String(e));throw e;}
  };
- const apply=(a:Action)=>{
+ const apply=async(a:Action)=>{
   if(modeRef.current==='REPLAY')throw new Error('Stop replay before changing controller settings');
-  const message=engine.current.action(a,modeRef.current==='HARDWARE'?Date.now()/1000:sampleCount.current);
-  publish();send();saveCheckpoint();return message;
+  if(modeRef.current==='HARDWARE'&&!serial.current)throw new Error('Connect hardware before changing hardware controls');
+  if(modeRef.current==='HARDWARE'&&serial.current?.localOverride)throw new Error('Local keypad override is active on the device; press 0 on the keypad to return control to the dashboard');
+  const urgent=a.type==='override'&&a.mode==='FORCE_CLOSE';
+  if((actionBusy.current||calibrating.current)&&!urgent)throw new Error('Wait for the current device operation');
+  if(!urgent)actionBusy.current=true;
+  try{
+   if(a.type==='config'&&a.config.hasDrain&&modeRef.current==='HARDWARE'&&!serial.current?.device?.drain_available)throw new Error('Drain output is not commissioned in firmware');
+   const message=engine.current.action(a,modeRef.current==='HARDWARE'?Date.now()/1000:sampleCount.current);
+   publish();await send();saveCheckpoint();return message;
+  }finally{if(!urgent)actionBusy.current=false;}
  };
  useEffect(()=>{
   const tick=setInterval(()=>{
@@ -92,7 +103,9 @@ export const TelemetryProvider:React.FC<{children:React.ReactNode}>=({children})
   const watchdog=setInterval(()=>{
    if(modeRef.current!=='HARDWARE'||!serial.current)return;
    const p=serial.current,now=Date.now();
-   if(p.expiredCommand(now)||now-(p.lastSampleAt||serialStarted.current)>3000||now-(p.lastAck||serialStarted.current)>3000)fault('Telemetry or command acknowledgement timeout');
+   if(now-(p.lastSampleAt||serialStarted.current)>3000){fault('Telemetry timeout');return;}
+   if(p.localOverride)return; // No commands are outstanding under local control.
+   if(p.expiredCommand(now)||now-(p.lastAck||serialStarted.current)>3000)fault('Telemetry or command acknowledgement timeout');
   },250);
   return()=>{clearInterval(tick);clearInterval(watchdog);void serial.current?.disconnect();};
  },[]);
@@ -111,22 +124,30 @@ export const TelemetryProvider:React.FC<{children:React.ReactNode}>=({children})
   const p=new HardwareSerial();
   try {
    // New hardware session starts closed, with a separately retained hardware baseline.
-   let candidate=new GateController();
-   const saved=localStorage.getItem('okeanos-hardware-checkpoint-v1');
-   if(saved){try{candidate.restore(JSON.parse(saved));}catch{candidate=new GateController();candidate.config.hasDrain=false;}}
-   else candidate.config.hasDrain=false;
+   let candidate=new GateController();candidate.config.hasDrain=false;
    await p.connect(sample=>{
     if(modeRef.current!=='HARDWARE'||serial.current!==p)return;
-    const f=engine.current.step(sample,Date.now()/1000);publish();trace(f);send();setConnection(`USB active • device command state: ${p.applied} • physical position unverified`);
+    latestSeq.current=sample.seq;
+    const override=sample.control_mode==='LOCAL_LED_TEST';
+    // Returning from local control re-arms the firmware's closed-only handshake.
+    if(!override&&localOverride.current)engine.current.action({type:'override',mode:'FORCE_CLOSE'},Date.now()/1000);
+    localOverride.current=override;
+    const f=engine.current.step(sample,Date.now()/1000);publish();trace(f);void send().catch(()=>{});
+    setConnection(override
+     ?`USB ${p.device?.device_id} • LOCAL KEYPAD OVERRIDE • main ${sample.main}, drain ${sample.drain} • dashboard commands suspended • press 0 on the keypad to return control`
+     :`USB ${p.device?.device_id} • ${sample.actuator_kind} • main ${sample.main}, drain ${sample.drain} • ${sample.calibrated?'calibrated':'CALIBRATION REQUIRED'} • ${sample.freshness_basis}${sample.fresh?'':' (LED bench: press #; real valve: flow input required)'}${sample.nvs_ok===false?' • NVS fault':''}${sample.log_ok===false?' • local log unavailable':''} • physical position unverified`);
     if(++sampleCount.current%10===0)saveCheckpoint();
-   },fault);
+   },message=>{if(serial.current===p)fault(message);});
+   deviceKey.current=`okeanos-hardware-v2-${p.device!.device_id}`;
+   try{const saved=localStorage.getItem(deviceKey.current);if(saved)candidate.restore(JSON.parse(saved));}catch{candidate=new GateController();candidate.config.hasDrain=false;}
+   if(!p.device!.drain_available)candidate.config.hasDrain=false;
    engine.current=candidate;serial.current=p;serialStarted.current=Date.now();sampleCount.current=0;
    challenge.current=emptyChallenge();setChallengeRun(challenge.current);setHistory([]);replay.current=null;
-   setOperatingMode('HARDWARE');setConnection('USB serial connected • commands are not physical valve-position feedback');publish();send();
-  }catch(e){await p.disconnect();throw e;}
+   setOperatingMode('HARDWARE');setConnection('USB serial connected • commands are not physical valve-position feedback');publish();await send();
+  }catch(e){if(serial.current===p){serial.current=null;engine.current.action({type:'override',mode:'FORCE_CLOSE'},Date.now()/1000);publish();}await p.disconnect();setConnection(String(e));throw e;}
  };
  const disconnectHardware=async()=>{
-  saveCheckpoint();engine.current.action({type:'override',mode:'FORCE_CLOSE'},Date.now()/1000);
+  engine.current.action({type:'override',mode:'FORCE_CLOSE'},Date.now()/1000);saveCheckpoint();
   const p=serial.current;serial.current=null;await p?.disconnect();publish();setConnection('Hardware disconnected • controller closed. Select Reset to simulation to resume.');
  };
  const loadReplay=(text:string)=>{
@@ -143,7 +164,18 @@ export const TelemetryProvider:React.FC<{children:React.ReactNode}>=({children})
   overrideValve:async(mode)=>apply({type:'override',mode}),resolveQuarantine:async(action)=>apply({type:'quarantine',action}),
   triggerPurge:async(seconds=15)=>apply({type:'purge',seconds}),setSourceProfile:async(profile)=>apply({type:'profile',profile}),
   startChallenge,stopChallenge:()=>{challenge.current={...challenge.current,is_running:false};setChallengeRun(challenge.current);},resetToLive,
-  calibrateSensor:(sensor,reference)=>{apply({type:'calibrate',sensor,reference});},
+  calibrateSensor:async(sensor,reference)=>{
+   if(modeRef.current!=='HARDWARE')return apply({type:'calibrate',sensor,reference});
+   const p=serial.current;if(!p)throw new Error('Hardware is disconnected');
+   if(calibrating.current||actionBusy.current)throw new Error('Wait for the current device operation');
+   calibrating.current=true;
+   try{
+    engine.current.action({type:'device_calibration',sensor,at:Date.now()/1000,message:'Calibration capture requested; closed'},Date.now()/1000);publish();
+    await send();const result=await p.calibrate(sensor,reference,latestSeq.current);
+    const message=String(result.message||'Device calibration acknowledged');
+    engine.current.action({type:'device_calibration',sensor,at:Date.now()/1000,message},Date.now()/1000);publish();saveCheckpoint();return message;
+   }finally{calibrating.current=false;}
+  },
   saveConfig:(config)=>apply({type:'config',config}),exportFlightRecorder,connectHardware,disconnectHardware,loadReplay
  }}>{children}</TelemetryContext.Provider>;
 };

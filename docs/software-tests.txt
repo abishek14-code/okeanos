@@ -1,0 +1,50 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> tauri-app@0.1.0 test
+> node --import tsx --test tests/*.test.mjs tests/*.test.tsx
+
+✔ React dashboard uses device ACKs for hardware recovery, purge, calibration, configuration and closure (750.12397ms)
+✔ expanded uncertainty applies coverage factor and invalid values never pass (1.072301ms)
+✔ startup is closed and opens only after stable fresh recovery (10.760933ms)
+✔ each hard limit closes immediately, including pH lower bound (25.452512ms)
+✔ uncertainty overlap closes immediately before temporal classification (7.482477ms)
+✔ invalid, estimated and duplicate measurements cannot authorize flow (19.192038ms)
+✔ unknown profile locks gate and freezes trusted learning (5.105007ms)
+✔ manual closure persists and AUTO requires recovery (29.349607ms)
+✔ emergency cannot bypass source, invalid sensors or hard limits (14.475257ms)
+✔ trapped samples cannot restore flow and loss of freshness closes (24.09096ms)
+✔ purge enforces mutual exclusion and requires a commissioned path (11.693578ms)
+✔ drift freezes baseline; dangerous quarantine cannot be admitted (16.439943ms)
+✔ frozen acquisition is diagnosed after 30 identical sensor readings (3.903024ms)
+✔ single good sample does not reopen; stable recovery succeeds before relapse (20.68872ms)
+✔ exposure uses preceding command and elapsed time (5.011238ms)
+✔ stale data closes, restart retains exposure but never permission (4.003653ms)
+✔ configuration validates hard bounds and updates interval decisions (5.024919ms)
+✔ per-source qualified baseline stays separate (11.849479ms)
+✔ software calibration applies to subsequent values and restarts recovery (3.475018ms)
+✔ export and replay reproduce decisions, including operator actions and restart (24.627657ms)
+✔ quarantine admission revalidates data rather than blindly copying counts (3.571051ms)
+✔ all challenge scenarios execute actual controller decisions with mutually exclusive commands (152.383077ms)
+✔ same mean with larger noise changes permission (4.537355ms)
+✔ interlocked emergency can relax statistical bands while freezing learning (12.265682ms)
+✔ superseded configuration cannot blindly admit older quarantined samples (3.384574ms)
+✔ closed latch cancels active purge and prevents drain reopening (5.006411ms)
+✔ epoch-based hardware startup does not immediately trigger four-hour purge (0.277282ms)
+✔ hardware readings expose raw ADC and do not double-apply software calibration (3.57705ms)
+✔ quantized constant temperature alone does not fault working hardware ADCs (4.066897ms)
+✔ unknown source lock survives checkpoint restore (8.410945ms)
+✔ negotiates v2, ignores boot text, assembles fragmented samples, acknowledges exact configuration (26.169711ms)
+✔ malformed packets raise faults rather than default readings (19.298146ms)
+✔ device veto rejects the awaiting action and never reports successful actuation (2.446071ms)
+✔ pending command expires even when newer telemetry arrives (0.806478ms)
+✔ calibration waits for correlated firmware response (0.559971ms)
+✔ leaving dashboard mode is a device fault (15.524224ms)
+✔ uncalibrated readings remain visible but cannot advertise valid data (30.448193ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1951.768854

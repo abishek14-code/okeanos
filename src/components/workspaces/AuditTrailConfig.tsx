@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTelemetry } from '../../context/TelemetryContext';
 import { DownloadIcon } from '../common/Icons';
 
@@ -15,13 +15,18 @@ export const AuditTrailConfig: React.FC = () => {
   const [coverageK, setCoverageK] = useState(String(config.k));
   const [cusumH, setCusumH] = useState(frame.quarantine_engine.threshold_h);
 
+  useEffect(()=>{
+    setTdsLower(config.limits.tds[0]);setTdsUpper(config.limits.tds[1]);
+    setPhLower(config.limits.ph[0]);setPhUpper(config.limits.ph[1]);
+    setCoverageK(String(config.k));setCusumH(config.cusumH);
+  },[config]);
   const logs = frame.flight_recorder_log || [];
 
   const filteredLogs = filterType === 'ALL' ? logs : logs.filter((l) => l.event_type === filterType);
 
-  const handleSaveConfig = (e: React.FormEvent) => {
+  const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{setSavedNotice(saveConfig({...config,k:Number(coverageK),cusumH,limits:{...config.limits,tds:[tdsLower,tdsUpper],ph:[phLower,phUpper]}}));}catch(e){setSavedNotice(String(e));}
+    try{setSavedNotice(await saveConfig({...config,k:Number(coverageK),cusumH,limits:{...config.limits,tds:[tdsLower,tdsUpper],ph:[phLower,phUpper]}}));}catch(e){setSavedNotice(String(e));}
     setTimeout(() => setSavedNotice(null), 4000);
   };
 
@@ -76,6 +81,7 @@ export const AuditTrailConfig: React.FC = () => {
       }}
     >
       <option value="ALL">All Event Types</option>
+      <option value="GATE_PERMISSION">GATE_PERMISSION</option>
       <option value="GATE_SNAP_CLOSE">GATE_SNAP_CLOSE</option>
       <option value="PURGE_TRIGGER">PURGE_TRIGGER</option>
       <option value="QUARANTINE_FREEZE">QUARANTINE_FREEZE</option>
@@ -196,7 +202,7 @@ export const AuditTrailConfig: React.FC = () => {
                 }}
               >
                 <option value="1.96">k = 1.96</option>
-                <option value="2.0">k = 2.00</option>
+                <option value="2">k = 2.00</option>
                 <option value="2.58">k = 2.58</option>
                 <option value="3.0">k = 3.00</option>
               </select >
